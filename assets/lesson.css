@@ -67,6 +67,23 @@
 .ls-rub { border-left: 10px solid var(--rc); background: #fff; border-radius: 12px; padding: 8px 14px; }
 .ls-rub b { color: var(--rc); margin-right: 10px; }
 
+/* 三層一覽 */
+.ls-tiers { gap: 12px; }
+.ls-tier { border: 2px solid var(--tc); border-left-width: 12px; border-radius: 14px; background: #fff; padding: 8px 16px; }
+.ls-tier-head, .ls-tier-q, .ls-tier-fit, .ls-tier-key { font-size: var(--mrd-body); line-height: 1.4; }
+.ls-tier-head { font-weight: 900; color: var(--tc); }
+.ls-tier-key { display: inline-block; min-width: 1.4em; margin-right: 8px; text-align: center; color: #fff; background: var(--tc); border-radius: 8px; }
+.ls-tier-fit { font-weight: 700; color: var(--muted); }
+.ls-tier-q { font-weight: 800; }
+
+/* 動畫 */
+.ls-anim { align-items: stretch; }
+.ls-stage { width: 100%; text-align: center; }
+.ls-sub { font-size: var(--mrd-body); line-height: 1.45; font-weight: 800; text-align: center; min-height: 2.9em;
+  background: #172033; color: #fff; border-radius: 12px; padding: 6px 14px; }
+.ls-anim .ls-actions { align-items: center; }
+.ls-anim-r { flex: 1; min-width: 160px; accent-color: var(--ct); }
+
 /* 矮螢幕（例：720p 投影機）：教學文字維持 28pt，只縮間距、按鈕與計時數字 */
 @media (max-height: 800px) {
   .ls { gap: 8px; }
@@ -82,6 +99,9 @@
   .ls-count { font-size: 24px; min-width: 52px; padding: 0 8px; }
   .ls-clock { font-size: 96px; }
   .ls-hints li, .ls-ans, .ls-box, .ls-rub { padding: 4px 12px; }
+  .ls-tiers { gap: 6px; }
+  .ls-tier { padding: 2px 12px; }
+  .ls-sub { padding: 2px 12px; }
 }
 
 /* 統計 */

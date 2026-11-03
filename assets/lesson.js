@@ -11,6 +11,8 @@
    LS.timer(h, {min, label, tips})                 倒數計時（巡視時用）
    LS.exit(h, {q, ans, rubric})                    出口題＋三類學生判準與後續安排
    LS.tally(h, {q, levels})                        自評／舉手統計
+   LS.tiers(h, tiers)                              A／B／C 三層題目同時顯示（讓學生選層）
+   LS.anim(h, {scenes, vb})                        分幕動畫＋字幕＋預錄語音（例：粵語旁白）
    ============================================================ */
 (function () {
   const TIER = {
@@ -221,5 +223,93 @@
     if (zb) zb.onclick = () => { counts.forEach(b => { b.textContent = '0'; }); paint(); };
   }
 
-  window.LS = { goals, tasks, check, mistake, timer, exit, tally, TIER };
+  function tiers(h, list) {
+    h.innerHTML = `<div class="ls ls-tiers">${(list || []).map(t => {
+      const T = TIER[t.tier] || TIER.B;
+      return `<div class="ls-tier" style="--tc:${T.color}">
+        <div class="ls-tier-head"><span class="ls-tier-key">${t.tier}</span>${t.name || T.name}${t.fit ? `<span class="ls-tier-fit">｜${t.fit}</span>` : ''}</div>
+        <div class="ls-tier-q">${t.q}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // 分幕動畫：scenes=[{say:'字幕', audio:'audio/s1.mp3', dur:秒, d:k=>'SVG 片段'}]，k 為該幕 0～1 的進度。
+  // 前面各幕以 d(1) 疊加；進度條可拖曳（驗證工具會掃描它）。有 audio 就播預錄語音並等它講完；
+  // 沒有 audio 時，若瀏覽器有對應語言（opt.lang，預設 zh-HK）的語音就朗讀字幕，否則只顯示字幕。
+  function anim(h, o) {
+    o = o || {};
+    const sc = o.scenes || [], N = sc.length, lang = o.lang || 'zh-HK';
+    h.innerHTML = `<div class="ls ls-anim">
+      <div class="ls-stage"><svg viewBox="${o.vb || '0 0 440 250'}" style="max-width:100%"><g class="ls-ag"></g></svg></div>
+      <div class="ls-sub"></div>
+      <div class="ls-actions ls-ui">
+        <button class="ls-btn ls-ui" data-act="play">▶ 播放</button>
+        <button class="ls-btn ls-ui" data-act="sound">🔊 聲音：開</button>
+        <input class="ls-anim-r ls-ui" type="range" min="0" max="${N}" step="0.01" value="0" aria-label="動畫進度">
+      </div></div>`;
+    const g = h.querySelector('.ls-ag'), sub = h.querySelector('.ls-sub'), r = h.querySelector('.ls-anim-r');
+    const pb = h.querySelector('[data-act="play"]'), sb = h.querySelector('[data-act="sound"]');
+    const at = v => { const i = Math.max(0, Math.min(N - 1, Math.floor(v))); return [i, Math.max(0, Math.min(1, v - i))]; };
+    const draw = () => {
+      if (!N) return;
+      const [i, k] = at(+r.value);
+      let s = '';
+      for (let j = 0; j < i; j++) if (sc[j].d) s += sc[j].d(1);
+      if (sc[i].d) s += sc[i].d(k);
+      g.innerHTML = s;
+      sub.innerHTML = sc[i].say || '';
+    };
+    let playing = false, raf = null, cur = 0, t0 = 0, sound = true, audio = null, voiceDone = true;
+    const stopVoice = () => {
+      if (audio) { audio.pause(); audio = null; }
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      voiceDone = true;
+    };
+    const speak = i => {
+      stopVoice();
+      if (!sound) return;
+      const s = sc[i];
+      if (s.audio) {
+        audio = new Audio(s.audio); voiceDone = false;
+        audio.onended = audio.onerror = () => { voiceDone = true; };
+        audio.play().catch(() => { voiceDone = true; });
+      } else if (window.speechSynthesis) {
+        const v = window.speechSynthesis.getVoices().find(x => x.lang && x.lang.toLowerCase().startsWith(lang.toLowerCase()));
+        if (!v) return;
+        const u = new SpeechSynthesisUtterance(String(s.speak || s.say || '').replace(/<[^>]*>/g, ''));
+        u.voice = v; u.lang = v.lang; voiceDone = false;
+        u.onend = u.onerror = () => { voiceDone = true; };
+        window.speechSynthesis.speak(u);
+      }
+    };
+    const dur = i => Math.max(0.5, +sc[i].dur || 4) * 1000;
+    const startScene = (i, k = 0) => { cur = i; t0 = performance.now() - k * dur(i); speak(i); };
+    const pause = () => {
+      playing = false; if (raf) clearTimeout(raf); raf = null; stopVoice();
+      pb.textContent = +r.value >= N ? '▶ 再看一次' : '▶ 播放';
+    };
+    const tick = now => {
+      if (!h.isConnected) { pause(); return; }   // 換頁後停止動畫與聲音
+      const p = Math.min(1, (now - t0) / dur(cur));
+      r.value = String(cur + Math.min(p, 0.999)); draw();
+      if (p >= 1 && voiceDone) {
+        if (cur + 1 < N) startScene(cur + 1);
+        else { r.value = String(N); draw(); pause(); return; }
+      }
+      raf = setTimeout(() => tick(performance.now()), 33);   // 用計時器而非 rAF：視窗在背景時仍會前進
+    };
+    pb.onclick = () => {
+      if (playing) { pause(); return; }
+      if (!N) return;
+      if (+r.value >= N) r.value = '0';
+      const [i, k] = at(+r.value);
+      playing = true; pb.textContent = '❚❚ 暫停';
+      startScene(i, k); tick(performance.now());
+    };
+    sb.onclick = () => { sound = !sound; sb.textContent = sound ? '🔊 聲音：開' : '🔇 聲音：關'; if (!sound) stopVoice(); };
+    r.addEventListener('input', e => { if (e.isTrusted && playing) pause(); draw(); });
+    draw();
+  }
+
+  window.LS = { goals, tasks, check, mistake, timer, exit, tally, tiers, anim, TIER };
 })();

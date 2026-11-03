@@ -19,9 +19,11 @@ lesson.json（UTF-8）：
     "description": "meta description（選填）",
     "phases": [ ...（選填；不寫就用本技能 assets/phases.json 的預設五階段）... ]
   }
-  phases 每項：{"time": "0–5 分鐘", "title": "階段名稱", "color": "#RRGGBB（選填）",
+  phases 每項：{"time": "0–5 分鐘", "title": "給學生看的階段名稱（簡報用）",
+               "teacher_title": "教師用的階段名稱（教案用，選填）", "color": "#RRGGBB（選填）",
                "sections": [{"code": "1-1", "name": "節名", "kind": "元件種類"}]}
-  kind 可用：goals、tasks、check、mistake、timer、exit、tally、slider、stepper、static
+  kind 可用：goals、tasks、tiers、check、mistake、timer、exit、tally、anim、slider、stepper、static
+  簡報上的階段名稱與小節名稱是給學生看的：寫成吸引學生的任務名稱，不寫教師的動作（如「巡視」）。
   各階段時間必須從 0 分鐘開始、首尾相接、總長 40 分鐘。未定義的欄位一律報錯。
 
 產出（--out 資料夾內）：
@@ -63,7 +65,7 @@ MATHJAX_DIRS = ('a11y', 'adaptors', 'input', 'output', 'sre', 'ui')
 PALETTE = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#e11d48', '#0891b2']
 TOP_KEYS = {'title', 'grade', 'topic', 'goal', 'prior', 'focus', 'difficulty',
             'eyebrow', 'subtitle', 'description', 'phases'}
-PHASE_KEYS = {'time', 'title', 'color', 'sections'}
+PHASE_KEYS = {'time', 'title', 'teacher_title', 'color', 'sections'}
 SEC_KEYS = {'code', 'name', 'kind'}
 LESSON_MINUTES = 40
 
@@ -138,9 +140,29 @@ SLIDES = {
           { tier: 'C', q: '請填：C 層延伸挑戰題（解釋、比較或遷移）。', ans: '請填' }
         ], { start: 'B' })
       }''',
+    'tiers': HEAD + '''
+        title: '請填：選擇你的挑戰',
+        points: ['三層題目都看一遍。', '選一層開始，做完往上挑戰。'],
+        visual: (h) => LS.tiers(h, [
+          { tier: 'A', fit: '請填：適合誰', q: '請填：A 層題目。' },
+          { tier: 'B', fit: '請填：適合誰', q: '請填：B 層題目。' },
+          { tier: 'C', fit: '請填：適合誰', q: '請填：C 層題目。' }
+        ])
+      }''',
+    'anim': HEAD + '''
+        title: '請填：看動畫，找規律',
+        points: ['按 ▶ 播放，邊看邊想。', '看完說說你發現了什麼。'],
+        visual: (h) => LS.anim(h, {
+          vb: '0 0 440 250',
+          scenes: [
+            { say: '請填：第 1 幕字幕（粵語）。', audio: 'audio/s1.mp3', dur: 4, d: k => TX(220, 130, '第 1 幕', { fs: 30, c: C, anchor: 'middle' }) },
+            { say: '請填：第 2 幕字幕（粵語）。', audio: 'audio/s2.mp3', dur: 4, d: k => TX(220, 190, '第 2 幕', { fs: 30, c: GRN, anchor: 'middle' }) }
+          ]
+        })
+      }''',
     'check': HEAD + '''
         title: '請填：理解檢查的問題',
-        points: ['全班同時用手勢或小白板作答。', '老師點選項計票，再揭曉。'],
+        points: ['想好再比手勢，全班一起出。', '說說看：你為什麼選它？'],
         visual: (h) => LS.check(h, {
           q: '請填：能揭示理解程度的問題。',
           options: [
@@ -162,9 +184,9 @@ SLIDES = {
         })
       }''',
     'timer': HEAD + '''
-        title: '請填：獨立嘗試，老師巡視',
-        points: ['先自己想，再動筆。', '卡住時舉手，老師先給提示。'],
-        visual: (h) => LS.timer(h, { min: 8, label: '獨立練習', tips: ['請填：巡視觀察重點。'] })
+        title: '請填：專注時間，自己挑戰',
+        points: ['先自己想，再動筆。', '卡住先按提示，再舉手。'],
+        visual: (h) => LS.timer(h, { min: 8, label: '專注時間', tips: ['請填：給學生的自我檢查提醒（巡視重點寫在教案）。'] })
       }''',
     'exit': HEAD + '''
         title: '請填：出口題',
@@ -181,7 +203,7 @@ SLIDES = {
       }''',
     'tally': HEAD + '''
         title: '請填：自我評估',
-        points: ['舉手表示自己的程度。', '誠實回答，下一節依此安排。'],
+        points: ['舉手表示自己的程度。', '誠實回答，下一節更適合你。'],
         visual: (h) => LS.tally(h, { q: '請填：我能……', levels: ['已掌握', '部分掌握', '尚未掌握'] })
       }''',
     'static': HEAD + '''
@@ -274,6 +296,8 @@ def load_config(path):
             errs.append(f'{w} 有未定義的欄位「{k}」')
         if not isinstance(ph.get('title'), str) or not ph['title'].strip():
             errs.append(f'{w}.title 必填')
+        if 'teacher_title' in ph and not isinstance(ph['teacher_title'], str):
+            errs.append(f'{w}.teacher_title 必須是字串')
         m = TIME_RE.match(str(ph.get('time', '')))
         if not m:
             errs.append(f'{w}.time 格式應為「0–5 分鐘」')
@@ -362,10 +386,10 @@ def lesson_plan(cfg):
          '|------|------|----------|----------|----------|----------|------------|']
     for i, ph in enumerate(p, start=1):
         secs = '、'.join(f"{s['code']} {s['name']}" for s in ph['sections'])
-        L.append(f"| {md_cell(ph['time'])} | {md_cell(ph['title'])} | 請填 | 請填 | 請填 | 請填 | 第 {i} 階段：{md_cell(secs)} |")
+        L.append(f"| {md_cell(ph['time'])} | {md_cell(ph.get('teacher_title') or ph['title'])} | 請填 | 請填 | 請填 | 請填 | 第 {i} 階段「{md_cell(ph['title'])}」：{md_cell(secs)} |")
     L += ['', '各階段另列：教學資源、理解檢查、可能困難、應對策略。', '']
     for i, ph in enumerate(p, start=1):
-        L += [f"### 第 {i} 階段　{ph['time']}　{ph['title']}", '',
+        L += [f"### 第 {i} 階段　{ph['time']}　{ph.get('teacher_title') or ph['title']}（簡報：{ph['title']}）", '',
               '- 教師活動：請填', '- 學生活動：請填', '- 教學資源：請填', '- 理解檢查：請填',
               '- 可能困難：請填', '- 應對策略：請填', '']
     L += ['## C. 課堂練習', '',

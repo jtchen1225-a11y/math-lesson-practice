@@ -1,26 +1,27 @@
 {
   "type_name": "練習課",
   "phases": [
-    {"time": "0–5 分鐘", "title": "診斷起步題", "sections": [
-      {"code": "1-1", "name": "本節練習目標", "kind": "goals"},
-      {"code": "1-2", "name": "診斷題", "kind": "check"}
+    {"time": "0–5 分鐘", "title": "暖身診斷：你在哪一關？", "teacher_title": "診斷起步題", "sections": [
+      {"code": "1-1", "name": "今天的目標", "kind": "goals"},
+      {"code": "1-2", "name": "診斷快問", "kind": "check"}
     ]},
-    {"time": "5–10 分鐘", "title": "方法回顧與關鍵步驟", "sections": [
-      {"code": "2-1", "name": "關鍵步驟", "kind": "stepper"},
-      {"code": "2-2", "name": "檢查方法", "kind": "check"}
+    {"time": "5–10 分鐘", "title": "解題秘笈大公開", "teacher_title": "方法回顧與關鍵步驟", "sections": [
+      {"code": "2-1", "name": "解題秘笈", "kind": "stepper"},
+      {"code": "2-2", "name": "自我檢查", "kind": "check"}
     ]},
-    {"time": "10–25 分鐘", "title": "分層練習兩輪＋巡視", "sections": [
-      {"code": "3-1", "name": "第一輪：基本題型", "kind": "tasks"},
-      {"code": "3-2", "name": "巡視計時", "kind": "timer"},
-      {"code": "3-3", "name": "第二輪：條件變化", "kind": "tasks"}
+    {"time": "10–25 分鐘", "title": "兩輪闖關：基本功到變化題", "teacher_title": "分層練習兩輪＋巡視", "sections": [
+      {"code": "3-1", "name": "選擇你的挑戰", "kind": "tiers"},
+      {"code": "3-2", "name": "第一關：基本功", "kind": "tasks"},
+      {"code": "3-3", "name": "專注時間", "kind": "timer"},
+      {"code": "3-4", "name": "第二關：變化題", "kind": "tasks"}
     ]},
-    {"time": "25–35 分鐘", "title": "錯誤門診＋再試一題", "sections": [
-      {"code": "4-1", "name": "錯誤門診", "kind": "mistake"},
-      {"code": "4-2", "name": "再試一題", "kind": "tasks"}
+    {"time": "25–35 分鐘", "title": "抓錯偵探＋再試一次", "teacher_title": "錯誤門診＋再試一題", "sections": [
+      {"code": "4-1", "name": "抓錯偵探", "kind": "mistake"},
+      {"code": "4-2", "name": "再試一次", "kind": "tasks"}
     ]},
-    {"time": "35–40 分鐘", "title": "出口題＋自我評估", "sections": [
-      {"code": "5-1", "name": "出口題", "kind": "exit"},
-      {"code": "5-2", "name": "自我評估", "kind": "tally"}
+    {"time": "35–40 分鐘", "title": "最後一關＋幫自己打分", "teacher_title": "出口題＋自我評估", "sections": [
+      {"code": "5-1", "name": "出口挑戰", "kind": "exit"},
+      {"code": "5-2", "name": "我的程度", "kind": "tally"}
     ]}
   ]
 }
