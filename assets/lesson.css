@@ -1,0 +1,91 @@
+/* ============================================================
+   lesson.css — 課堂元件樣式（課堂版新增，搭配 lesson.js）
+   教學文字一律 var(--mrd-body)（28pt）；按鈕略小但仍可在教室後排辨識。
+   ============================================================ */
+.visual-host > .ls { margin: 0 auto auto; width: 100%; }
+.slide-visual .visual-host > .ls { padding-top: 34px; }   /* 讓出右上角「🔍 放大」按鈕 */
+.ls { display: flex; flex-direction: column; gap: 14px; text-align: left; color: var(--ink); }
+.ls-q, .ls-list li, .ls-note, .ls-hints li, .ls-ans, .ls-ot, .ls-why, .ls-steps li,
+.ls-box, .ls-rub, .ls-tl, .ls-tag, .ls-head, .ls-key { font-size: var(--mrd-body); line-height: 1.45; }
+
+.ls-head { font-weight: 900; color: var(--ct); }
+.ls-tag { display: inline-block; align-self: flex-start; font-weight: 900; color: var(--tc, var(--ct));
+  border-left: 8px solid var(--tc, var(--ct)); padding-left: 12px; }
+.ls-q { font-weight: 800; background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 14px 18px; }
+.ls-note { color: var(--muted); }
+.ls-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ls-list li { position: relative; padding: 10px 14px 10px 54px; background: #fff; border: 1.5px solid var(--line); border-radius: 14px; }
+.ls-list li::before { content: '✓'; position: absolute; left: 16px; top: 9px; color: var(--ct); font-weight: 900; }
+
+/* 操作按鈕 */
+.ls-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ls-btn, .ls-tab { font-size: 26px; font-weight: 800; border-radius: 999px; padding: 6px 20px; cursor: pointer;
+  border: 2px solid var(--tc, var(--ct)); color: var(--tc, var(--ct)); background: #fff; }
+.ls-btn:hover, .ls-tab:hover, .ls-tab.active { background: var(--tc, var(--ct)); color: #fff; }
+.ls-btn:focus-visible, .ls-tab:focus-visible, .ls-count:focus-visible { outline: 4px solid #f59e0b; outline-offset: 2px; }
+
+/* 分層任務 */
+.ls-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.ls-card { display: none; flex-direction: column; gap: 12px; border-top: 6px solid var(--tc); padding-top: 10px; }
+.ls-card.show { display: flex; }
+.ls-hints { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: hint; }
+.ls-hints li { display: none; counter-increment: hint; background: #fffbeb; border: 1.5px dashed #f59e0b; border-radius: 12px; padding: 8px 14px; }
+.ls-hints li::before { content: '提示 ' counter(hint) '：'; font-weight: 900; color: #b45309; }
+.ls-hints li.show { display: block; }
+.ls-ans { display: none; font-weight: 900; color: #047857; background: #ecfdf5; border-radius: 12px; padding: 8px 14px; }
+.ls-ans.show { display: block; }
+
+/* 理解檢查 */
+.ls-opts { display: flex; flex-direction: column; gap: 10px; }
+.ls-opt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 14px;
+  background: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 8px 14px; }
+.ls-key { font-weight: 900; color: var(--ct); }
+.ls-opt .ls-why { display: none; grid-column: 1 / -1; color: #9f1239; }
+.ls-check.revealed .ls-opt .ls-why { display: block; }
+.ls-check.revealed .ls-opt.ok { border-color: #059669; background: #ecfdf5; }
+.ls-check.revealed .ls-opt.ok .ls-why { color: #047857; }
+.ls-count { min-width: 64px; font-size: 28px; font-weight: 900; border-radius: 12px; border: 2px solid var(--line); background: #f8fafc; color: var(--ink); cursor: pointer; padding: 2px 10px; }
+
+/* 錯誤分析 */
+.ls-steps { margin: 0; padding-left: 1.6em; display: flex; flex-direction: column; gap: 6px; }
+.ls-steps li { padding: 4px 10px; border-radius: 10px; }
+.ls-steps li.bad { background: #fff1f2; outline: 3px solid #e11d48; }
+.ls-box { display: none; border-radius: 12px; padding: 8px 14px; }
+.ls-mistake .ls-why { background: #fff1f2; color: #9f1239; }
+.ls-mistake .ls-fix { background: #ecfdf5; color: #065f46; }
+.ls-mistake.found .ls-why, .ls-mistake.fixed .ls-fix { display: block; }
+
+/* 計時 */
+.ls-timer { align-items: center; text-align: center; }
+.ls-clock { font-size: 140px; font-weight: 900; line-height: 1; color: var(--ct); font-variant-numeric: tabular-nums; }
+.ls-timer.done .ls-clock { color: #e11d48; }
+.ls-tips { align-self: stretch; text-align: left; }
+
+/* 出口題 */
+.ls-view { display: none; flex-direction: column; gap: 12px; }
+.ls-view.show { display: flex; }
+.ls-rub { border-left: 10px solid var(--rc); background: #fff; border-radius: 12px; padding: 8px 14px; }
+.ls-rub b { color: var(--rc); margin-right: 10px; }
+
+/* 矮螢幕（例：720p 投影機）：教學文字維持 28pt，只縮間距、按鈕與計時數字 */
+@media (max-height: 800px) {
+  .ls { gap: 8px; }
+  .slide-visual .visual-host > .ls { padding-top: 28px; }
+  .ls-q { padding: 6px 14px; border-radius: 12px; }
+  .ls-opts { gap: 6px; }
+  .ls-opt { padding: 2px 12px; }
+  .ls-list { gap: 6px; }
+  .ls-list li { padding: 4px 12px 4px 50px; }
+  .ls-list li::before { top: 4px; }
+  .ls-card { gap: 8px; padding-top: 6px; border-top-width: 4px; }
+  .ls-btn, .ls-tab { font-size: 22px; padding: 2px 14px; }
+  .ls-count { font-size: 24px; min-width: 52px; padding: 0 8px; }
+  .ls-clock { font-size: 96px; }
+  .ls-hints li, .ls-ans, .ls-box, .ls-rub { padding: 4px 12px; }
+}
+
+/* 統計 */
+.ls-trow { display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 14px; }
+.ls-tl { font-weight: 900; color: var(--rc); }
+.ls-bar { height: 26px; background: #eef2f8; border-radius: 999px; overflow: hidden; }
+.ls-bar i { display: block; height: 100%; background: var(--rc); transition: width .2s; }

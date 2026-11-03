@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.png binary
+# MathJax 原檔不做換行轉換（new_lesson.py 會核對入口檔 SHA256）
+vendor/** -text

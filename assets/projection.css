@@ -1,0 +1,124 @@
+/* ============================================================
+   projection.css — 投影模式（本機新增，載入於 style.css 之後）
+   主要教學文字、圖說、滑桿說明至少 28pt（37.5px）；
+   不自動等比縮小整頁（engine.js 改為偵測超出並提示分頁）。
+   SVG 內的文字以 viewBox 單位計算，實際大小取決於欄寬，必須用 ?check 模式實測。
+   ============================================================ */
+:root {
+  --mrd-body: 37.5px;    /* 28pt：主要教學文字 */
+  --mrd-title: 46px;     /* 約 34pt：頁面標題 */
+  --mrd-small: 37.5px;   /* 標籤類教學文字也維持 28pt */
+}
+
+/* ---- 左欄：概念 ---- */
+.slide-title { font-size: var(--mrd-title); line-height: 1.2; margin-bottom: 14px; }
+.formula { font-size: var(--mrd-body); padding: 12px 18px; }
+.formula .formula-label { font-size: var(--mrd-small); }
+.points li { font-size: var(--mrd-body); line-height: 1.45; padding-left: 34px; }
+.points li::before { top: 22px; width: 12px; height: 12px; }
+.ex-head { font-size: var(--mrd-small); }
+.ex-q { font-size: var(--mrd-body); line-height: 1.5; }
+.ex-sol li { font-size: var(--mrd-body); line-height: 1.5; }
+.ex-ans { font-size: var(--mrd-body); }
+.ex-toggle { font-size: 24px; padding: 8px 20px; }
+
+/* ---- 右欄：視覺 ---- */
+.visual-caption { font-size: var(--mrd-body); line-height: 1.4; color: #3d4a61; }
+.ictrl label, .ival, .step-txt { font-size: var(--mrd-body); }
+.step-txt { line-height: 1.4; }
+.step-hint { font-size: 24px; }
+.ictrl input[type="range"] { width: 320px; height: 32px; }
+@media (min-width: 641px) {
+  .ictrl input[type="range"] { width: 300px; }
+  .ictrl .step-txt { max-width: none; }
+}
+.ibtn { font-size: var(--mrd-body); }
+
+/* ---- 停用自動縮放：欄位可捲動，不裁切；超出時由 engine.js 顯示分頁提示 ---- */
+.slide-info { overflow-y: auto; }
+.col-fit { transform: none !important; }
+/* 只限投影片內：放大成整頁（.zoom-body 內）仍需要 engine.js 的等比放大 */
+.slide-visual .visual-host { overflow: visible; transform: none !important; }
+.slide-visual { overflow-y: auto; }
+/* SVG 不再被欄高壓縮（壓縮會連帶縮小圖中文字）；圖過高就視為超出 */
+.visual-host svg { max-height: none; }
+
+/* ---- [版面修正] 公式標籤與公式同一列、範例的「顯示解答」移到標題列，省下垂直空間 ---- */
+.formula { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 18px; }
+.formula .formula-label { margin: 0; flex: none; }
+.formula mjx-container[display="true"] { margin: 0 !important; flex: 1 1 auto; }
+.example { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; align-items: center; }
+.example > .ex-head { grid-column: 1; margin-bottom: 4px; }
+.example > .ex-toggle { grid-column: 2; grid-row: 1; margin-top: 0; }
+.example > .ex-q, .example > .ex-sol { grid-column: 1 / -1; }
+
+/* ---- [版面修正] 中等螢幕（寬 ≤1440 或高 ≤800，例如 1280×720）：縮減導覽與邊距，文字仍 28pt ---- */
+@media (max-width: 1440px), (max-height: 800px) {
+  :root { --mrd-title: 40px; }
+  .topbar { height: 48px; padding: 0 14px; gap: 12px; }
+  .home-btn { font-size: 15px; }
+  .stage { padding: 8px 14px 0; }
+  .slide { padding: 14px 20px; gap: 20px; }
+  .badge { margin-bottom: 6px; padding: 3px 10px; }
+  .slide-title { margin-bottom: 8px; }
+  .formula { padding: 6px 14px; margin-bottom: 8px; }
+  .points { margin-bottom: 8px; }
+  .points li { padding-top: 2px; padding-bottom: 2px; }
+  .example { padding: 8px 14px; }
+  .slide-visual { padding: 12px 14px; }
+  .visual-caption { margin-top: 6px; }
+  .ictrl { margin-top: 6px; }
+  .controlbar { padding: 6px 2px 8px; gap: 12px; }
+  .nav-btn { padding: 7px 16px; }
+}
+/* 寬 ≤1440：目錄改為浮動層，投影片使用全寬（按「☰ 目錄」或教具列第二顆按鈕開啟） */
+@media (max-width: 1440px) {
+  .body { grid-template-columns: 1fr; }
+  .toc { position: fixed; inset: 48px auto 0 0; z-index: 30; width: min(340px, 86vw);
+         transform: translateX(-105%); transition: transform 0.25s ease; background: #fff; }
+  .toc.open { transform: none; box-shadow: var(--shadow); }
+}
+
+/* ---- [版面修正] 教具列：可收合；寬螢幕在右側預留車道，窄視窗移到底部（不覆蓋內容） ---- */
+.dock.collapsed > :not(.dk-toggle) { display: none !important; }
+.dk-toggle { color: var(--muted); }
+.dbtn:focus-visible, .dcolor:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+@media (min-width: 1081px) {
+  .stage { padding-right: 78px; }   /* 教具列寬 60 + 右距 14；收合時只變短，車道照留 */
+}
+@media (max-width: 1080px) {
+  .dock {
+    position: static; transform: none; flex: none; order: 3;
+    flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center;
+    gap: 6px; padding: 6px 8px; border-radius: 0; border-width: 1px 0 0;
+  }
+  .dsep { width: 1px; height: 28px; margin: 0 4px; }
+  .dcolors { flex-direction: row; padding: 0 4px; }
+}
+
+/* 欄內元素不可被彈性壓縮（否則公式框等會被壓扁、內容被裁切而不是被偵測為超出） */
+.col-fit > *, .slide-visual > * { flex-shrink: 0; }
+
+/* 窄視窗（≤1080px）：單欄、整頁捲動，不提示超出 */
+@media (max-width: 1080px) {
+  .slide-info, .slide-visual { overflow: visible; }
+  .visual-host { flex: none; }
+  /* min-height:0 會讓單欄的格線列縮得比內容矮而互相重疊，窄視窗改回依內容高度 */
+  .slide-info, .slide-visual { min-height: auto; }
+  .col-fit { min-height: 0; }
+  .ictrl input[type="range"] { width: min(320px, 80vw); }
+}
+
+/* 超出提示：放在頂部列，不蓋住投影片內容 */
+.mrd-overflow-banner {
+  flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: #fff4e5; color: #9a3412; border: 2px solid #f59e0b; border-radius: 10px;
+  padding: 3px 12px; font-size: 16px; font-weight: 900;
+}
+
+/* ?check 檢查報告 */
+.mrd-check-report {
+  position: fixed; inset: 40px; z-index: 2000; background: #fff; border: 3px solid #2563eb;
+  border-radius: 16px; padding: 20px 26px; overflow: auto; font: 15px/1.6 Consolas, "Microsoft JhengHei", monospace;
+  white-space: pre-wrap; box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
