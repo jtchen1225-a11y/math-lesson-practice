@@ -10,10 +10,8 @@
       {"code": "2-2", "name": "自我檢查", "kind": "check"}
     ]},
     {"time": "10–25 分鐘", "title": "兩輪闖關：基本功到變化題", "teacher_title": "分層練習兩輪＋巡視", "sections": [
-      {"code": "3-1", "name": "選擇你的挑戰", "kind": "tiers"},
-      {"code": "3-2", "name": "第一關：基本功", "kind": "tasks"},
-      {"code": "3-3", "name": "專注時間", "kind": "timer"},
-      {"code": "3-4", "name": "第二關：變化題", "kind": "tasks"}
+      {"code": "3-1", "name": "第一關：基本功", "kind": "drill"},
+      {"code": "3-2", "name": "第二關：變化題", "kind": "drill"}
     ]},
     {"time": "25–35 分鐘", "title": "抓錯偵探＋再試一次", "teacher_title": "錯誤門診＋再試一題", "sections": [
       {"code": "4-1", "name": "抓錯偵探", "kind": "mistake"},

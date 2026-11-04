@@ -5,13 +5,14 @@
    操作按鈕都帶 class="ls-ui"（?check 不把按鈕當教學文字量字級）；教學文字一律 28pt。
 
    LS.goals(h, {head, items, note})               學習目標／本節總結卡
-   LS.tasks(h, tiers, {start})                     A／B／C 分層任務＋提示階梯＋答案
+   LS.tasks(h, tiers, {timer})                     A／B／C 三層同頁顯示＋各自的提示階梯與答案；timer＝分鐘時頂端加倒數
    LS.check(h, {q, options, tally})                全班同步作答的理解檢查（可計票、揭曉迷思）
    LS.mistake(h, {who, q, steps, wrong, why, fix}) 典型錯誤分析（不公開學生身份）
-   LS.timer(h, {min, label, tips})                 倒數計時（巡視時用）
+   LS.timer(h, {min, label, tips})                 單獨的倒數計時頁（分層練習請用 tasks 的 timer）
    LS.exit(h, {q, ans, rubric})                    出口題＋三類學生判準與後續安排
    LS.tally(h, {q, levels})                        自評／舉手統計
-   LS.tiers(h, tiers)                              A／B／C 三層題目同時顯示（讓學生選層）
+   LS.tiers(h, tiers)                              A／B／C 三層題目一覽（只看題目，不含提示與答案）
+   LS.hook(h, {story, pic, video, guess, ask})     懸念引入：情境圖或短片＋故事＋先猜＋懸念問題
    LS.anim(h, {scenes, vb})                        分幕動畫＋字幕＋預錄語音（例：粵語旁白）
    ============================================================ */
 (function () {
@@ -33,31 +34,60 @@
     </div>`;
   }
 
+  // 倒數計時：回傳 HTML 與綁定函式；root 內需有 .ls-clock、[data-act="go"]、[data-act="reset"]
+  function clockParts(min) {
+    const total = Math.max(1, Math.round((+min || 5) * 60));
+    const html = `<span class="ls-clock">0:00</span>
+      <button class="ls-btn ls-ui" data-act="go">開始</button>
+      <button class="ls-btn ls-ui" data-act="reset">重設</button>`;
+    const bind = (h, root) => {
+      let left = total, tid = null;
+      const clock = root.querySelector('.ls-clock'), go = root.querySelector('[data-act="go"]');
+      const paint = () => {
+        clock.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+        root.classList.toggle('done', left === 0);
+      };
+      const stop = () => { if (tid) { clearInterval(tid); tid = null; } go.textContent = left ? '開始' : '時間到'; };
+      go.onclick = () => {
+        if (tid) { stop(); go.textContent = '繼續'; return; }
+        if (!left) return;
+        go.textContent = '暫停';
+        tid = setInterval(() => {
+          if (!h.isConnected) { stop(); return; }   // 換頁後 host 被移除就停止
+          left = Math.max(0, left - 1); paint();
+          if (!left) stop();
+        }, 1000);
+      };
+      root.querySelector('[data-act="reset"]').onclick = () => { stop(); left = total; paint(); };
+      paint();
+    };
+    return { html, bind };
+  }
+
+  // A／B／C 三層同一頁顯示；每張卡各有提示階梯與答案。opt.timer＝分鐘數時，頂端加倒數計時（專注時間）。
   function tasks(h, tiers, opt) {
     tiers = tiers || [];
     opt = opt || {};
-    const startIdx = Math.max(0, tiers.findIndex(t => t.tier === opt.start));
-    const tabs = tiers.length > 1 ? `<div class="ls-tabs ls-ui">${tiers.map((t, i) =>
-      `<button class="ls-tab ls-ui" data-i="${i}" style="--tc:${(TIER[t.tier] || TIER.B).color}">${t.tier} ${t.name || (TIER[t.tier] || {}).name || ''}</button>`).join('')}</div>` : '';
-    h.innerHTML = `<div class="ls ls-tasks">${tabs}${tiers.map((t, i) => {
-      const hints = t.hints || [];
-      return `<div class="ls-card" data-i="${i}" style="--tc:${(TIER[t.tier] || TIER.B).color}">
-        ${tiers.length === 1 && t.tier ? `<div class="ls-tag">${t.tier} ${t.name || (TIER[t.tier] || {}).name || ''}</div>` : ''}
-        <div class="ls-q">${t.q}</div>
+    const ck = opt.timer ? clockParts(opt.timer) : null;
+    h.innerHTML = `<div class="ls ls-tasks">
+      ${ck ? `<div class="ls-clockbar ls-ui">⏱ ${opt.label || '專注時間'}　${ck.html}</div>` : ''}
+      ${tiers.map((t, i) => {
+      const T = TIER[t.tier] || TIER.B, hints = t.hints || [];
+      return `<div class="ls-card show" data-i="${i}" style="--tc:${T.color}">
+        <div class="ls-card-head">
+          <span class="ls-tier-head ls-ui"><span class="ls-tier-key">${t.tier}</span>${t.name || T.name}</span>
+          <span class="ls-actions ls-ui">
+            ${hints.length ? `<button class="ls-btn ls-ui" data-act="hint">提示 0／${hints.length}</button>` : ''}
+            ${t.ans ? `<button class="ls-btn ls-ui" data-act="ans">答案</button>` : ''}
+          </span>
+        </div>
+        <div class="ls-tier-q">${t.q}</div>
         ${hints.length ? `<ol class="ls-hints">${hints.map(x => `<li>${x}</li>`).join('')}</ol>` : ''}
         ${t.ans ? `<div class="ls-ans">答：${t.ans}</div>` : ''}
-        <div class="ls-actions ls-ui">
-          ${hints.length ? `<button class="ls-btn ls-ui" data-act="hint">給提示 0／${hints.length}</button>` : ''}
-          ${t.ans ? `<button class="ls-btn ls-ui" data-act="ans">顯示答案</button>` : ''}
-        </div>
       </div>`;
     }).join('')}</div>`;
-    const cards = $$(h, '.ls-card'), tabBtns = $$(h, '.ls-tab');
-    const show = i => {
-      cards.forEach((c, k) => toggle(c, k === i));
-      tabBtns.forEach((b, k) => b.classList.toggle('active', k === i));
-    };
-    tabBtns.forEach((b, k) => { b.onclick = () => show(k); });
+    if (ck) ck.bind(h, h.querySelector('.ls-clockbar'));
+    const cards = $$(h, '.ls-card');
     cards.forEach(c => {
       const hints = $$(c, '.ls-hints li');
       let n = 0;
@@ -65,15 +95,14 @@
       if (hb && hints.length) hb.onclick = () => {
         if (n < hints.length) { toggle(hints[n], true); typeset(hints[n]); n++; }
         else { n = 0; hints.forEach(x => toggle(x, false)); }
-        hb.textContent = n < hints.length ? `給提示 ${n}／${hints.length}` : '收起提示';
+        hb.textContent = n < hints.length ? `提示 ${n}／${hints.length}` : '收起提示';
       };
       const ab = c.querySelector('[data-act="ans"]'), ans = c.querySelector('.ls-ans');
       if (ab && ans) ab.onclick = () => {
         const on = !ans.classList.contains('show');
-        toggle(ans, on); ab.textContent = on ? '收起答案' : '顯示答案'; if (on) typeset(ans);
+        toggle(ans, on); ab.textContent = on ? '收起答案' : '答案'; if (on) typeset(ans);
       };
     });
-    show(startIdx);
   }
 
   function check(h, o) {
@@ -139,35 +168,48 @@
 
   function timer(h, o) {
     o = o || {};
-    const total = Math.max(1, Math.round((+o.min || 5) * 60));
-    let left = total, tid = null;
+    // 單獨的計時頁；分層練習要計時時，請改用 LS.tasks(h, tiers, {timer: 分鐘})，讓題目和時間在同一頁
+    const ck = clockParts(o.min);
     h.innerHTML = `<div class="ls ls-timer">
       ${o.label ? `<div class="ls-head">${o.label}</div>` : ''}
-      <div class="ls-clock">0:00</div>
-      <div class="ls-actions ls-ui">
-        <button class="ls-btn ls-ui" data-act="go">開始</button>
-        <button class="ls-btn ls-ui" data-act="reset">重設</button>
-      </div>
+      <div class="ls-clockwrap">${ck.html}</div>
       ${o.tips ? `<ul class="ls-list ls-tips">${o.tips.map(t => `<li>${t}</li>`).join('')}</ul>` : ''}
     </div>`;
-    const clock = h.querySelector('.ls-clock'), go = h.querySelector('[data-act="go"]'), root = h.querySelector('.ls-timer');
-    const paint = () => {
-      clock.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
-      root.classList.toggle('done', left === 0);
-    };
-    const stop = () => { if (tid) { clearInterval(tid); tid = null; } go.textContent = left ? '開始' : '時間到'; };
-    go.onclick = () => {
-      if (tid) { stop(); go.textContent = '繼續'; return; }
-      if (!left) return;
-      go.textContent = '暫停';
-      tid = setInterval(() => {
-        if (!h.isConnected) { stop(); return; }   // 換頁後 host 被移除就停止
-        left = Math.max(0, left - 1); paint();
-        if (!left) stop();
-      }, 1000);
-    };
-    h.querySelector('[data-act="reset"]').onclick = () => { stop(); left = total; paint(); };
-    paint();
+    ck.bind(h, h.querySelector('.ls-timer'));
+  }
+
+  // 懸念引入：情境圖（pic，SVG／HTML）或短片（video，本機檔案路徑）＋故事，學生先猜，最後丟出懸念問題（不給答案）。
+  // o = {story, pic, video, poster, guess:['猜測選項'], ask:'懸念問題', later:'學完就知道…'}
+  function hook(h, o) {
+    o = o || {};
+    const media = o.video
+      ? `<video class="ls-video" src="${o.video}" ${o.poster ? `poster="${o.poster}"` : ''} controls preload="metadata" playsinline></video>`
+      : (o.pic || '');
+    const L = 'ABCDEFGH';
+    const views = [];
+    if (media || o.story) views.push(['👀 看情境', `${media ? `<div class="ls-stage">${media}</div>` : ''}${o.story ? `<div class="ls-story">${o.story}</div>` : ''}`]);
+    if ((o.guess || []).length) views.push(['🤔 猜一猜', `${o.story ? `<div class="ls-story">${o.story}</div>` : ''}<div class="ls-opts">${o.guess.map((g, i) => `<div class="ls-opt">
+        <span class="ls-key">${L[i]}</span><span class="ls-ot">${g}</span>
+        <button class="ls-count ls-ui" title="點一下＋1">0</button></div>`).join('')}</div>`]);
+    views.push(['❓ 懸念登場', `<div class="ls-ask"><div class="ls-ask-q">❓ ${o.ask || ''}</div>${o.later ? `<div class="ls-ask-later">${o.later}</div>` : ''}</div>`]);
+    // 一次只顯示一步：看情境 → 猜一猜 → 懸念登場（懸念不給答案）
+    h.innerHTML = `<div class="ls ls-hook">
+      ${views.map((x, i) => `<div class="ls-view${i ? '' : ' show'}" data-i="${i}">${x[1]}</div>`).join('')}
+      <div class="ls-actions ls-ui">${views.map((x, i) => `<button class="ls-btn ls-ui${i ? '' : ' active'}" data-step="${i}">${x[0]}</button>`).join('')}</div>
+    </div>`;
+    $$(h, '.ls-count').forEach(b => { b.onclick = () => { b.textContent = String(+b.textContent + 1); }; });
+    const vs = $$(h, '.ls-view'), bs = $$(h, '[data-step]');
+    bs.forEach((b, k) => {
+      b.onclick = () => {
+        vs.forEach((el, i) => toggle(el, i === k));
+        bs.forEach((x, i) => x.classList.toggle('active', i === k));
+        typeset(vs[k]);
+      };
+    });
+    const v = h.querySelector('.ls-video');
+    if (v) {   // 換頁後停止短片
+      const t = setInterval(() => { if (!h.isConnected) { v.pause(); clearInterval(t); } }, 500);
+    }
   }
 
   function exit(h, o) {
@@ -311,5 +353,5 @@
     draw();
   }
 
-  window.LS = { goals, tasks, check, mistake, timer, exit, tally, tiers, anim, TIER };
+  window.LS = { goals, tasks, check, mistake, timer, exit, tally, tiers, anim, hook, TIER };
 })();

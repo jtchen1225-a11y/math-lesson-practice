@@ -236,7 +236,7 @@ DECK.forEach((chap, ci) => {
       if (!html.trim()) { err(`${tag}：visual() 沒有產生任何內容`); return; }
 
       const hasCtrl = /class="ictrl"/.test(html) || /SV\.stepper/.test(String(s.visual));
-      const hasLesson = /LS\.(tasks|check|mistake|timer|exit|tally|tiers|anim)\s*\(/.test(String(s.visual));   // [課堂版] 課堂元件也算互動
+      const hasLesson = /LS\.(tasks|check|mistake|timer|exit|tally|tiers|anim|hook)\s*\(/.test(String(s.visual));   // [課堂版] 課堂元件也算互動
 
       // 從產生的 HTML 解析每個 <input type=range> 的 id/min/max/step/value（不依賴屬性順序）
       const inputs = [...html.matchAll(/<input\b[^>]*>/g)].map((m) => m[0])

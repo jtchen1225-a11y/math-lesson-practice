@@ -24,10 +24,15 @@
 .ls-btn:hover, .ls-tab:hover, .ls-tab.active { background: var(--tc, var(--ct)); color: #fff; }
 .ls-btn:focus-visible, .ls-tab:focus-visible, .ls-count:focus-visible { outline: 4px solid #f59e0b; outline-offset: 2px; }
 
-/* 分層任務 */
-.ls-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
-.ls-card { display: none; flex-direction: column; gap: 12px; border-top: 6px solid var(--tc); padding-top: 10px; }
+/* 分層任務：A／B／C 三張卡同頁顯示 */
+.ls-tasks { gap: 10px; }
+.ls-card { display: none; flex-direction: column; gap: 4px; border: 2px solid var(--tc); border-left-width: 12px; border-radius: 14px; background: #fff; padding: 6px 14px; }
 .ls-card.show { display: flex; }
+.ls-card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.ls-card .ls-btn { font-size: 22px; padding: 1px 14px; }
+.ls-clockbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 26px; font-weight: 900; color: var(--ct); }
+.ls-clockbar .ls-clock { font-size: 48px; line-height: 1; }
+.ls-clockbar.done .ls-clock { color: #e11d48; }
 .ls-hints { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: hint; }
 .ls-hints li { display: none; counter-increment: hint; background: #fffbeb; border: 1.5px dashed #f59e0b; border-radius: 12px; padding: 8px 14px; }
 .ls-hints li::before { content: '提示 ' counter(hint) '：'; font-weight: 900; color: #b45309; }
@@ -57,7 +62,9 @@
 
 /* 計時 */
 .ls-timer { align-items: center; text-align: center; }
-.ls-clock { font-size: 140px; font-weight: 900; line-height: 1; color: var(--ct); font-variant-numeric: tabular-nums; }
+.ls-clockwrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+.ls-clock { font-weight: 900; line-height: 1; color: var(--ct); font-variant-numeric: tabular-nums; }
+.ls-clockwrap .ls-clock { display: block; width: 100%; font-size: 140px; }
 .ls-timer.done .ls-clock { color: #e11d48; }
 .ls-tips { align-self: stretch; text-align: left; }
 
@@ -75,6 +82,17 @@
 .ls-tier-key { display: inline-block; min-width: 1.4em; margin-right: 8px; text-align: center; color: #fff; background: var(--tc); border-radius: 8px; }
 .ls-tier-fit { font-weight: 700; color: var(--muted); }
 .ls-tier-q { font-weight: 800; }
+
+/* 懸念引入 */
+.ls-story, .ls-ask-q, .ls-ask-later { font-size: var(--mrd-body); line-height: 1.45; }
+.ls-story { font-weight: 800; }
+.ls-video { width: 100%; max-height: 52vh; border-radius: 12px; background: #000; }
+.ls-ask { border-radius: 14px; padding: 8px 16px; background: #fff7ed; border: 3px dashed #f59e0b; }
+.ls-view.show .ls-ask { animation: ls-pop .35s ease-out; }
+.ls-btn.active { background: var(--tc, var(--ct)); color: #fff; }
+.ls-ask-q { font-weight: 900; color: #b45309; }
+.ls-ask-later { color: var(--muted); font-weight: 700; }
+@keyframes ls-pop { from { transform: scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* 動畫 */
 .ls-anim { align-items: stretch; }
@@ -97,7 +115,15 @@
   .ls-card { gap: 8px; padding-top: 6px; border-top-width: 4px; }
   .ls-btn, .ls-tab { font-size: 22px; padding: 2px 14px; }
   .ls-count { font-size: 24px; min-width: 52px; padding: 0 8px; }
-  .ls-clock { font-size: 96px; }
+  .ls-clockwrap .ls-clock { font-size: 96px; }
+  .ls-clockbar .ls-clock { font-size: 40px; }
+  .ls-tasks { gap: 6px; }
+  .ls-card { padding: 2px 12px; gap: 0; }
+  .ls-card .ls-tier-head { font-size: 26px; line-height: 1.25; }
+  .ls-card .ls-tier-key { font-size: 26px; line-height: 1.25; }
+  .ls-card .ls-tier-q { line-height: 1.3; }
+  .ls-card .ls-btn { font-size: 20px; }
+  .ls-ask { padding: 2px 12px; }
   .ls-hints li, .ls-ans, .ls-box, .ls-rub { padding: 4px 12px; }
   .ls-tiers { gap: 6px; }
   .ls-tier { padding: 2px 12px; }

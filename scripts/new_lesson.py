@@ -22,7 +22,7 @@ lesson.json（UTF-8）：
   phases 每項：{"time": "0–5 分鐘", "title": "給學生看的階段名稱（簡報用）",
                "teacher_title": "教師用的階段名稱（教案用，選填）", "color": "#RRGGBB（選填）",
                "sections": [{"code": "1-1", "name": "節名", "kind": "元件種類"}]}
-  kind 可用：goals、tasks、tiers、check、mistake、timer、exit、tally、anim、slider、stepper、static
+  kind 可用：goals、tasks、drill（三層題目＋計時同頁）、hook（懸念引入）、tiers、check、mistake、timer、exit、tally、anim、slider、stepper、static
   簡報上的階段名稱與小節名稱是給學生看的：寫成吸引學生的任務名稱，不寫教師的動作（如「巡視」）。
   各階段時間必須從 0 分鐘開始、首尾相接、總長 40 分鐘。未定義的欄位一律報錯。
 
@@ -133,12 +133,32 @@ SLIDES = {
       }''',
     'tasks': HEAD + '''
         title: '請填：本頁任務重點',
-        points: ['先獨立做，卡住再按「給提示」。', '完成 B 層的同學挑戰 C 層。'],
+        points: ['三層都看一遍，選一層開始。', '卡住先按「提示」，做完往上挑戰。'],
         visual: (h) => LS.tasks(h, [
           { tier: 'A', q: '請填：A 層基礎支持題（附提示）。', hints: ['請填：提示 1（重讀題目）。', '請填：提示 2（相關概念）。'], ans: '請填' },
           { tier: 'B', q: '請填：B 層核心達標題。', hints: ['請填：提示。'], ans: '請填' },
           { tier: 'C', q: '請填：C 層延伸挑戰題（解釋、比較或遷移）。', ans: '請填' }
-        ], { start: 'B' })
+        ])
+      }''',
+    'drill': HEAD + '''
+        title: '請填：專注 8 分鐘，選一層挑戰',
+        points: ['按「開始」計時，選一層開始。', '卡住先按「提示」，做完往上挑戰。'],
+        visual: (h) => LS.tasks(h, [
+          { tier: 'A', q: '請填：A 層基礎支持題（附提示）。', hints: ['請填：提示 1（重讀題目）。', '請填：提示 2（相關概念）。'], ans: '請填' },
+          { tier: 'B', q: '請填：B 層核心達標題。', hints: ['請填：提示。'], ans: '請填' },
+          { tier: 'C', q: '請填：C 層延伸挑戰題（解釋、比較或遷移）。', ans: '請填' }
+        ], { timer: 8 })
+      }''',
+    'hook': HEAD + '''
+        title: '請填：一個讓人好奇的問題',
+        points: ['先看情境，猜一猜。', '猜錯沒關係，學完就知道。'],
+        visual: (h) => LS.hook(h, {
+          pic: svg('0 0 440 220', TX(220, 120, '請畫情境圖（或用 video）', { fs: 30, c: C, anchor: 'middle' })),
+          story: '請填：生活情境或有趣的現象（1～2 行）。',
+          guess: ['請填：常見直覺（多半是錯的）', '請填：另一種猜測', '還不確定'],
+          ask: '請填：懸念問題（本節學完才能回答）',
+          later: '學完今天的內容，你就能自己找出答案！'
+        })
       }''',
     'tiers': HEAD + '''
         title: '請填：選擇你的挑戰',
