@@ -9,7 +9,7 @@
    LS.check(h, {q, options, tally})                全班同步作答的理解檢查（可計票、揭曉迷思）
    LS.mistake(h, {who, q, steps, wrong, why, fix}) 典型錯誤分析（不公開學生身份）
    LS.timer(h, {min, label, tips})                 單獨的倒數計時頁（分層練習請用 tasks 的 timer）
-   LS.exit(h, {q, ans})                            出口題＋參考答案（判準只寫在教案，不投影）
+   LS.exit(h, {q, ans, rubric})                    出口題＋參考答案（rubric 不投影，只出現在教師版紙本）
    LS.tally(h, {q, levels})                        自評／舉手統計
    LS.tiers(h, tiers)                              A／B／C 三層題目一覽（只看題目，不含提示與答案）
    LS.hook(h, {story, pic, video, guess, ask})     懸念引入：情境圖或短片＋故事＋先猜＋懸念問題
@@ -206,6 +206,7 @@
     </div>`;
     const st = slot('check');
     const resetVotes = o.tally !== false ? bindVotes(h, st, o.q, opts.map((x, i) => `${L[i]}. ${x.t}`)) : null;
+    st.ok = opts.map(x => !!x.ok);
     const rb = h.querySelector('[data-act="reveal"]'), root = h.querySelector('.ls-check');
     const paint = () => {
       root.classList.toggle('revealed', !!st.revealed);
@@ -294,7 +295,7 @@
     }
   }
 
-  // 出口題：投影畫面只有題目與參考答案。達標判準與下一節安排只寫在教案，不投影，避免標籤學生。
+  // 出口題：投影畫面只有題目與參考答案。rubric（判準與下一節安排）這裏不顯示，只印在教師版紙本，避免標籤學生。
   function exit(h, o) {
     o = o || {};
     h.innerHTML = `<div class="ls ls-exit">
@@ -341,8 +342,8 @@
     .sort((a, b) => String(a.sec).localeCompare(String(b.sec), undefined, { numeric: true }));
   function downloadCsv(rows) {
     const q = v => `"${String(v).replace(/"/g, '""')}"`;
-    const lines = [['頁面', '問題', '選項', '人數'].map(q).join(',')];
-    rows.forEach(r => r.labels.forEach((l, i) => lines.push([r.sec, plain(r.q), plain(l), r.counts[i]].map(q).join(','))));
+    const lines = [['頁面', '問題', '選項', '人數', '正解'].map(q).join(',')];
+    rows.forEach(r => r.labels.forEach((l, i) => lines.push([r.sec, plain(r.q), plain(l), r.counts[i], r.ok ? (r.ok[i] ? '是' : '否') : ''].map(q).join(','))));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
     a.download = `課堂紀錄-${document.title}.csv`;

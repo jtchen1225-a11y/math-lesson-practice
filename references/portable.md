@@ -11,6 +11,7 @@
 ├── validation-report.md   # 驗證報告（validate_deck.py 產生）
 └── site\
     ├── index.html         # 封面、目錄、舞台、教具列；MathJax 設定（相對路徑、選單關閉）
+    ├── handout.html、handout.js、handout.css  # 可列印的學習單、出口小紙條、教師版
     ├── engine.js          # 導覽與渲染（以「階段」為單位、超出提示、?check 檢查模式）
     ├── style.css          # 樣式（系統字型，無 Google Fonts）
     ├── projection.css     # 投影字級 28pt、不自動縮小

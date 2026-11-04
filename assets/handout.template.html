@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{TITLE}}｜列印紙本</title>
+  <link rel="stylesheet" href="handout.css?v={{VERSION}}" />
+  <script>
+    window.MathJax = {
+      loader: { paths: { mathjax: 'mathjax/es5' } },
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' },
+      options: { enableMenu: false },
+      startup: { typeset: false }
+    };
+    window.HANDOUT = { topic: {{TOPIC_JS}}, grade: {{GRADE_JS}} };
+  </script>
+  <script src="mathjax/es5/tex-svg-full.js" id="MathJax-script"></script>
+</head>
+<body>
+  <div class="ho-toolbar">
+    <button data-print="student">🖨 列印學生學習單</button>
+    <button data-print="slips">🖨 列印出口小紙條</button>
+    <button data-print="teacher">🖨 列印教師版</button>
+    <a href="index.html">回到簡報</a>
+  </div>
+  <div id="hoBody"></div>
+  <script src="svg.js?v={{VERSION}}"></script>
+{{CHAPTER_SCRIPTS}}
+  <script src="handout.js?v={{VERSION}}"></script>
+</body>
+</html>

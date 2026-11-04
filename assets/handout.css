@@ -1,0 +1,45 @@
+/* handout.css — 可列印紙本的樣式（A4、黑白列印也看得清楚） */
+* { box-sizing: border-box; }
+body { margin: 0; background: #eef2f8; color: #172033; font: 16px/1.5 "Microsoft JhengHei", "PingFang HK", "PingFang TC", sans-serif; }
+.ho-toolbar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 16px; background: #172033; color: #fff; }
+.ho-toolbar button { font: inherit; font-weight: 700; padding: 6px 14px; border: 0; border-radius: 8px; background: #fff; color: #172033; cursor: pointer; }
+.ho-toolbar a { color: #bfdbfe; margin-left: auto; }
+.ho-sec { width: 210mm; max-width: 100%; margin: 16px auto; padding: 14mm; background: #fff; box-shadow: 0 4px 18px rgba(30, 42, 68, .12); }
+.ho-head h1 { margin: 0; font-size: 24px; }
+.ho-sub { color: #4b5568; }
+.ho-who { font-size: 15px; white-space: nowrap; }
+.ho-sec > .ho-who { text-align: right; margin-top: -24px; }
+h2 { font-size: 18px; margin: 14px 0 4px; border-bottom: 2px solid #172033; padding-bottom: 2px; }
+h2 small { font-weight: 400; font-size: 14px; }
+h3 { font-size: 16px; margin: 10px 0 4px; }
+.ho-tip { margin: 2px 0 6px; color: #4b5568; font-size: 14px; }
+.ho-task { break-inside: avoid; margin-bottom: 8px; }
+.ho-task-head { display: flex; align-items: center; gap: 6px; }
+.ho-key { display: inline-block; min-width: 1.5em; text-align: center; font-weight: 900; color: #fff; background: var(--tc); border-radius: 5px; margin-right: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ho-q { font-weight: 700; }
+.ho-hint { font-size: 14px; color: #4b5568; }
+.ho-space { height: 26mm; border: 1px dashed #cbd5e1; border-radius: 6px; margin-top: 4px; }
+.ho-slips { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 86mm; break-after: page; }
+.ho-slip { display: flex; flex-direction: column; gap: 6px; padding: 5mm; border: 1px dashed #64748b; overflow: hidden; }
+.ho-slip-head { display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.ho-slip .ho-space { flex: 1; height: auto; min-height: 0; border: 0; }
+table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 14px; }
+th, td { border: 1px solid #64748b; padding: 4px 6px; text-align: left; vertical-align: top; }
+th { background: #eef2f8; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ho-w { width: 16%; }
+.ho-c { text-align: center; }
+.ho-keep { break-inside: avoid; }
+td .ho-key { margin-right: 2px; }
+@page { size: A4; margin: 0; }
+@media print {
+  body { background: #fff; }
+  .ho-toolbar { display: none; }
+  .ho-sec { margin: 0; box-shadow: none; width: auto; break-after: page; }
+  body[data-mode="student"] .ho-sec:not([data-part="student"]),
+  body[data-mode="slips"] .ho-sec:not([data-part="slips"]),
+  body[data-mode="teacher"] .ho-sec:not([data-part="teacher"]) { display: none; }
+  .ho-sec[data-part="slips"] { padding: 6mm; }
+}
+body[data-mode="student"] .ho-sec:not([data-part="student"]),
+body[data-mode="slips"] .ho-sec:not([data-part="slips"]),
+body[data-mode="teacher"] .ho-sec:not([data-part="teacher"]) { display: none; }

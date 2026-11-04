@@ -27,7 +27,7 @@ lesson.json（UTF-8）：
   各階段時間必須從 0 分鐘開始、首尾相接、總長 40 分鐘。未定義的欄位一律報錯。
 
 產出（--out 資料夾內）：
-  site\\        index.html、engine.js、style.css、projection.css、svg.js、lesson.js、lesson.css、
+  site\\        index.html、handout.html（列印紙本）、engine.js、style.css、projection.css、svg.js、lesson.js、lesson.css、handout.js、handout.css、
                ch1.js…chN.js（一個階段一個檔）、mathjax\\（MathJax 3.2.2）
   lesson-plan.md  教案草稿（依 AGENTS 標準格式 A～F 與品質檢查表）
 
@@ -55,7 +55,7 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 ASSETS = os.path.join(ROOT, 'assets')
-ASSET_FILES = ('engine.js', 'style.css', 'projection.css', 'svg.js', 'lesson.js', 'lesson.css')
+ASSET_FILES = ('engine.js', 'style.css', 'projection.css', 'svg.js', 'lesson.js', 'lesson.css', 'handout.js', 'handout.css')
 
 MATHJAX_VERSION = '3.2.2'
 MATHJAX_ENTRY_SHA256 = 'a4354ff94fd868aea0cc6eaaa79a57fda0588646fc46ee3700a349ee0a11cbe6'
@@ -147,7 +147,7 @@ SLIDES = {
           { tier: 'A', q: '請填：A 層基礎支持題（附提示）。', hints: ['請填：提示 1（重讀題目）。', '請填：提示 2（相關概念）。'], ans: '請填' },
           { tier: 'B', q: '請填：B 層核心達標題。', hints: ['請填：提示。'], ans: '請填' },
           { tier: 'C', q: '請填：C 層延伸挑戰題（解釋、比較或遷移）。', ans: '請填' }
-        ], { timer: 7 })   // 分鐘數依階段長度調整，預留選層時間
+        ], { timer: 7, watch: ['請填：巡視觀察重點（標明概念／程序／粗心）'] })   // timer 依階段長度調整；watch 只印在教師版
       }''',
     'hook': HEAD + '''
         title: '請填：一個讓人好奇的問題',
@@ -213,7 +213,8 @@ SLIDES = {
         points: ['獨立完成，約 2～3 分鐘。', '寫出關鍵步驟。'],
         visual: (h) => LS.exit(h, {
           q: '請填：與核心目標直接相關的出口題。',
-          ans: '請填'
+          ans: '請填',
+          rubric: { mastered: '請填：判準 → 下一節安排。', partial: '請填：判準 → 下一節安排。', notyet: '請填：判準 → 下一節安排。' }   // 只印在教師版，不投影
         })
       }''',
     'tally': HEAD + '''
@@ -406,10 +407,15 @@ def lesson_plan(cfg):
     for i, ph in enumerate(p, start=1):
         L += [f"### 第 {i} 階段　{ph['time']}　{ph.get('teacher_title') or ph['title']}（簡報：{ph['title']}）", '',
               '- 教師活動：請填', '- 學生活動：請填', '- 教學資源：請填', '- 理解檢查：請填',
-              '- 可能困難：請填', '- 應對策略：請填', '']
+              '- 可能困難：請填', '- 應對策略：請填', '- 支援提示：請填（基礎薄弱、動機不足、疲累或注意力不足、能力較高之中相關的學生）', '']
     L += ['## C. 課堂練習', '',
           '| 層次 | 題目 | 答案 | 解題說明／提示 |', '|------|------|------|----------------|',
           '| A層 基礎支持 | 請填 | 請填 | 請填 |', '| B層 核心達標 | 請填 | 請填 | 請填 |', '| C層 延伸挑戰 | 請填 | 請填 | 請填 |', '',
+          '### 巡視觀察表（也印在 site\\handout.html 的教師版）', '',
+          '| 觀察重點（錯誤類型） | 人數 | 用於錯誤分析 |', '|------|------|------|', '| 請填 |  | ☐ |', '| 請填 |  | ☐ |', '| 其他： |  | ☐ |', '',
+          '### 不同學生的支援', '',
+          '| 學生情況 | 本節做法 |', '|------|------|', '| 基礎薄弱 | 請填（可逐步減少支持，不長期只做低層次題） |', '| 動機不足 | 請填（短而明確的任務、提供選擇；不等同懶惰） |',
+          '| 疲累或注意力不足 | 請填（分段、低壓力回應、個別關心；不當成紀律問題） |', '| 能力較高 | 請填（比較解法、推理解釋；不固定當教學助手） |', '',
           '## D. 典型錯誤分析', '',
           '- 錯誤示例：請填', '- 可能原因（概念／程序／粗心）：請填', '- 診斷問題：請填',
           '- 教師引導方式：請填', '- 修正後練習：請填', '',
@@ -466,6 +472,12 @@ def build(cfg, version):
                                                .replace('{{HOME_LABEL}}', e(cfg['_type']))
                                                .replace('{{VERSION}}', version)
                                                .replace('{{CHAPTER_SCRIPTS}}', scripts))
+    with open(os.path.join(ASSETS, 'handout.template.html'), encoding='utf-8') as fh:
+        out[os.path.join('site', 'handout.html')] = (fh.read().replace('{{TITLE}}', e(cfg['title']))
+                                                     .replace('{{TOPIC_JS}}', js_html(cfg['topic']))
+                                                     .replace('{{GRADE_JS}}', js_html(cfg['grade']))
+                                                     .replace('{{VERSION}}', version)
+                                                     .replace('{{CHAPTER_SCRIPTS}}', scripts))
     out['lesson-plan.md'] = lesson_plan(cfg)
     return out
 

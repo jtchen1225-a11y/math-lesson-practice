@@ -64,7 +64,7 @@ node --version     # Node.js（只用內建模組）
 
 練習課特別注意：
 
-- **投影畫面是給學生看的**：階段名稱、小節名稱、左欄 `points`、計時頁提醒都寫成吸引學生的任務或自我提醒（例：「熱身挑戰」「抓錯偵探」「最後一關」），不寫教師的動作（巡視、計票、判斷誰要補救）。教師用的名稱放在 `phases` 的 `teacher_title`，只出現在教案。出口題的達標判準與下一節安排也**只寫在教案**，不投影，避免標籤學生。
+- **投影畫面是給學生看的**：階段名稱、小節名稱、左欄 `points`、計時頁提醒都寫成吸引學生的任務或自我提醒（例：「熱身挑戰」「抓錯偵探」「最後一關」），不寫教師的動作（巡視、計票、判斷誰要補救）。教師用的名稱放在 `phases` 的 `teacher_title`，只出現在教案。出口題的達標判準與下一節安排也**只放在教案與教師版紙本**，不投影，避免標籤學生。
 - **所有分層題都三層同一頁**（`LS.tasks`）：A 基礎支持、B 核心達標、C 延伸挑戰同時顯示，每層有自己的提示與答案按鈕，學生自選一層。不用分頁切換。
 - **專注時間一定要配練習題**：計時器放在題目頁頂端（kind `drill`，`LS.tasks(h, tiers, {timer: 分鐘})`），不做只有時間的計時頁。
 - 1-2 診斷題的每個錯誤選項都要對應一種典型錯誤，並在左欄寫明「選哪一個 → 從哪一層開始」。
@@ -108,12 +108,16 @@ python "$S\scripts\new_lesson.py" --config "output\<名稱>\lesson.json" --out "
 
 依草稿的 A～F 格式填完：基本資料、流程表（教師活動、學生活動、分層支持、學習證據）、各階段（資源、理解檢查、可能困難、應對策略）、A／B／C 練習與答案、典型錯誤分析、出口題與三類判準、課後反思框架、品質檢查表。
 
+教案還要填：**巡視觀察表**（列出要留意的典型錯誤，標明概念／程序／粗心）、**不同學生的支援**（基礎薄弱、動機不足、疲累或注意力不足、能力較高），以及每個階段一行支援提示。沒有真實資料時標註「預期情況」。不得把疲累當紀律問題，也不得固定安排能力較高的學生當助教。
+
 ### Step 4　寫簡報各階段 `site\chN.js`
 
 先讀 `references/slide-spec.md`（頁面格式）與 `references/lesson-components.md`（課堂元件），需要繪圖時讀 `references/svg-toolkit.md`、`references/interaction-patterns.md`。
 
 - **左欄寫「學生現在要做什麼」**（`points` ≤3 條、每條約 ≤24 字），右欄放圖解、互動或課堂元件。
 - 簡報內容與教案一致：同一組題目、同一組錯誤、同一道出口題。
+- 專注闖關頁寫 `watch`（巡視重點），出口題寫 `rubric`（三類判準與下一節安排）。兩者都不投影，只印在教師版。
+- 出口題不可和示範題、懸念或練習題同一情境同一組數字，要換情境和數字，才看得出是否真正理解。
 - 三層同頁放得下的前提是題目短：每題 1 行為原則，最多一層 2 行；用 `--window 1310x862`（約等於 720p 全螢幕）檢查。
 - 每一題答案都**自己實際算一遍**（可用 Python 驗算），不要只憑印象。
 - 範例見 `examples/linear-equation/`（中一一元一次方程），已通過驗證。
@@ -142,7 +146,13 @@ python "$S\scripts\validate_deck.py" "output\<名稱>\site"
 
 ### Step 6　課後反思（教師提供真實證據時）
 
-教師提供出口題結果、作答或觀察時，依課堂原則第五節 Step 5 分析：哪些設計有效、哪些學生仍有困難、哪些錯誤最值得跟進、下一節要調整什麼。寫進 `lesson-plan.md` 的 F 節。只用教師給的證據；沒有證據的推論標註「預期情況」。
+教師提供出口題人數、「課堂紀錄」CSV、作答或觀察時，先整理數字：
+
+```powershell
+python "$S\scripts\summarize_evidence.py" --csv "<課堂紀錄 CSV>" --exit "已掌握=18,部分掌握=9,尚未掌握=5" --out "output\<名稱>\evidence-summary.md"
+```
+
+再依 `references/after-class.md` 分析：哪些設計有效、哪些學生仍有困難（用類別或人數，不寫姓名）、哪些錯誤最值得跟進、下一節要調整甚麼。結果寫進 `lesson-plan.md` 的 F 節。只用教師給的證據；沒有證據的推論標註「預期情況」，不得虛構學生表現。
 
 ## 4. 開啟與攜帶
 
@@ -152,11 +162,14 @@ python "$S\scripts\validate_deck.py" "output\<名稱>\site"
 
 課堂紀錄：教具列的長條圖按鈕可看各題票數、下載 CSV（只有人數，沒有姓名）。換頁再回來，票數、提示、答案與倒數都還在；倒數在換頁後繼續走，時間到會響鈴（🔔 可關）。資料只留在該瀏覽器分頁；換一班上課前，按「清除本節紀錄」。
 
+紙本：開 `site\handout.html`（封面也有連結），可分別列印學生學習單（沒有答案）、出口小紙條（一張 A4 六份）、教師版（巡視觀察表、判準、答案，不要投影或派發）。紙本直接讀 `chN.js`，改題目不用改兩次。
+
 ## 5. 回報時必寫
 
 - 產出位置：`lesson-plan.md`、`site\index.html`、驗證報告的完整路徑；頁數、互動與課堂元件頁數。
 - 五層驗證結果；失敗時列出頁碼、滑桿、值與原因。
 - 投影解析度是否實測；沒測就寫「投影版面未驗證」。
+- 紙本檢查結果；列印效果是否人工預覽過（沒看就寫「列印效果未驗證」）。
 - 數學內容人工核對的範圍；課堂元件按鈕是否逐一點過。
 - 哪些學生表現是「預期情況」。
 
@@ -186,12 +199,15 @@ python "$S\scripts\validate_deck.py" "output\<名稱>\site"
 | 檔案 | 用途 |
 |------|------|
 | `scripts/new_lesson.py` | 依 `lesson.json` 產生練習課五階段簡報骨架＋教案草稿 |
+| `scripts/summarize_evidence.py` | 把課堂紀錄 CSV 與出口題人數整理成證據摘要（只有統計，不判斷原因） |
 | `scripts/make_audio.py` | 依 narration.json 產生動畫頁的預錄語音 mp3（預設香港粵語；需要已安裝 edge-tts） |
 | `scripts/validate_deck.py`、`validate_harness.js`、`verify_deck.js` | 兩層檢查（格式＋瀏覽器互動、公式、版面） |
 | `assets/phases.json` | 本課型預設的五階段與頁面種類 |
 | `assets/lesson.js`、`lesson.css` | 課堂元件 LS |
+| `assets/handout.js`、`handout.css`、`handout.template.html` | 可列印紙本：學習單、出口小紙條、教師版 |
 | `assets/engine.js`、`style.css`、`projection.css`、`svg.js`、`index.template.html` | 簡報引擎（math-review-deck 本機適配版＋課堂版修改） |
-| `references/lesson-principles.md` | 40 分鐘數學課堂設計原則（全文） |
+| `references/lesson-principles.md` | 40 分鐘數學課堂設計原則（全文；開頭註明本技能的調整，有出入時以開頭說明為準） |
+| `references/after-class.md` | 課後依證據反思與調整下一節的做法 |
 | `references/lesson-components.md` | 課堂元件用法 |
 | `references/slide-spec.md`、`svg-toolkit.md`、`interaction-patterns.md`、`portable.md`、`ch-example.js` | 頁面格式、繪圖、互動、攜帶 |
 | `examples/linear-equation/` | 範例：lesson.json、ch1～ch5.js、lesson-plan.md |

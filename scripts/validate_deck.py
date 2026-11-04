@@ -108,6 +108,26 @@ def layout_check(site, browser, window, tmp):
     return {'status': '通過' if not bad else '失敗', 'viewport': rep['viewport'], 'pages': rep['pages'], 'failPages': [p['page'] for p in bad]}
 
 
+def handout_check(site, browser, tmp):
+    """紙本（handout.html）：有題目、公式排版成功、學生學習單沒有答案。列印效果仍需人工預覽。"""
+    page = Path(site) / 'handout.html'
+    if not page.is_file():
+        return {'status': '略過', 'reason': '沒有 handout.html'}
+    dom = run_browser(browser, page.as_uri() + '?check', Path(tmp) / 'profile-h', '1280,900', 120_000, 180)
+    m = re.search(r'<script type="application/json" id="ho-check-json">(.*?)</script>', dom or '', re.S)
+    if not m:
+        return {'status': '未完成', 'reason': '沒有取得紙本檢查結果'}
+    r = json.loads(m.group(1))
+    probs = []
+    if not r['taskPages'] and not r['exits']:
+        probs.append('沒有分層任務，也沒有出口題')
+    if r['rawTex'] or r['mathErrors']:
+        probs.append(f"公式問題：殘留 TeX {r['rawTex']}、錯誤 {r['mathErrors']}")
+    if r['studentHasAnswers']:
+        probs.append('學生學習單出現答案')
+    return dict(r, status='失敗' if probs else '通過', problems=probs)
+
+
 def split_problems(res):
     """把每個問題分到「互動／繪圖」或「公式」。"""
     inter, formula = [], []
@@ -218,18 +238,20 @@ def main():
     with tempfile.TemporaryDirectory(prefix='mrd-validate-') as tmp:
         inter, err = interactive_check(site, browser, a.cap, tmp)
         lay = {'status': '略過'} if a.skip_layout else layout_check(site, browser, a.window, tmp)
+        hand = handout_check(site, browser, tmp)
 
     inter_probs, formula_probs = split_problems(inter) if inter else ([], [])
     fatal = inter.get('fatal') if inter else None
     data = {'site': str(site), 'time': datetime.datetime.now().isoformat(timespec='seconds'), 'browser': str(browser),
             'format': fmt, 'interactive': inter, 'interactiveError': err or fatal, 'layout': lay,
-            'interProblems': inter_probs, 'formulaProblems': formula_probs}
+            'interProblems': inter_probs, 'formulaProblems': formula_probs, 'handout': hand}
     sampled = [f"第{p['page']}頁 {s['slider']}" for p in (inter or {}).get('pages', []) for s in p.get('sliders', []) if s['sampled']]
     data['summary'] = {
         '格式（verify_deck.js）': fmt['status'],
         '互動／繪圖（瀏覽器）': ('未完成：' + (err or fatal)) if (err or fatal) else ('通過' if not inter_probs else f'失敗（{len(inter_probs)} 項）') + (f'；⚠ 以下滑桿只抽樣、未測全部合法值：{"、".join(sampled)}' if sampled else ''),
         '公式（MathJax）': '未完成' if (err or fatal) else ('通過（只代表排版成功）' if not formula_probs else f'失敗（{len(formula_probs)} 項）'),
         '版面（?check）': lay.get('status') + (f"（{lay['viewport'][0]}×{lay['viewport'][1]}）" if lay.get('viewport') else ''),
+        '紙本（handout.html）': hand['status'] + (f"：{'；'.join(hand.get('problems', []))}" if hand.get('problems') else f"（任務頁 {hand.get('taskPages', 0)}、出口題 {hand.get('exits', 0)}；列印效果需人工預覽）" if hand['status'] == '通過' else f"：{hand.get('reason', '')}"),
         '數學內容': '需人工核對（程式不判定）',
     }
     md, js = report_dir / 'validation-report.md', report_dir / 'validation-report.json'
@@ -243,7 +265,7 @@ def main():
     print(f'   報告：{md}')
     if err or fatal:
         return 3
-    failed = fmt['status'] == '失敗' or inter_probs or formula_probs or lay.get('status') in ('失敗', '未完成')
+    failed = fmt['status'] == '失敗' or inter_probs or formula_probs or lay.get('status') in ('失敗', '未完成') or hand['status'] in ('失敗', '未完成')
     return 1 if failed else 0
 
 
