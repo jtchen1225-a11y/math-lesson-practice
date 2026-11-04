@@ -53,8 +53,10 @@
 .ls-count { min-width: 64px; font-size: 28px; font-weight: 900; border-radius: 12px; border: 2px solid var(--line); background: #f8fafc; color: var(--ink); cursor: pointer; padding: 2px 10px; }
 
 /* 錯誤分析 */
-.ls-steps { margin: 0; padding-left: 1.6em; display: flex; flex-direction: column; gap: 6px; }
-.ls-steps li { padding: 4px 10px; border-radius: 10px; }
+/* 編號畫在每行之內（不用清單標記），放大成整頁時才不會被裁切 */
+.ls-steps { margin: 0; padding: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 6px; }
+.ls-steps li { counter-increment: step; padding: 4px 10px; border-radius: 10px; }
+.ls-steps li::before { content: counter(step) '. '; font-weight: 800; color: var(--muted); margin-right: 8px; }
 .ls-steps li.bad { background: #fff1f2; outline: 3px solid #e11d48; }
 .ls-box { display: none; border-radius: 12px; padding: 8px 14px; }
 .ls-mistake .ls-why { background: #fff1f2; color: #9f1239; }
@@ -71,6 +73,13 @@
 /* 分步顯示 */
 .ls-view { display: none; flex-direction: column; gap: 12px; }
 .ls-view.show { display: flex; }
+
+/* 核心知識小結 */
+.ls-summary { gap: 10px; }
+.ls-summary .ls-head { font-size: var(--mrd-title); line-height: 1.2; }
+.ls-sum-list { list-style: none; margin: 0; padding: 0; counter-reset: sum; display: flex; flex-direction: column; gap: 8px; }
+.ls-sum-list li { counter-increment: sum; display: flex; align-items: center; gap: 12px; font-size: var(--mrd-body); line-height: 1.35; font-weight: 800; background: #fff; border: 2px solid var(--ct); border-radius: 14px; padding: 8px 14px; }
+.ls-sum-list li::before { content: counter(sum); flex: none; width: 1.3em; height: 1.3em; line-height: 1.3em; text-align: center; border-radius: 50%; color: #fff; background: var(--ct); }
 
 /* 課堂紀錄 */
 .ls-report { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(23, 32, 51, .55); }
@@ -134,6 +143,8 @@
   .ls-card .ls-btn { font-size: 20px; }
   .ls-ask { padding: 2px 12px; }
   .ls-hints li, .ls-ans, .ls-box { padding: 4px 12px; }
+  .ls-sum-list { gap: 5px; }
+  .ls-sum-list li { padding: 3px 12px; }
   .ls-tiers { gap: 6px; }
   .ls-tier { padding: 2px 12px; }
   .ls-sub { padding: 2px 12px; }

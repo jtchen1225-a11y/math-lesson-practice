@@ -11,6 +11,7 @@
    LS.timer(h, {min, label, tips})                 單獨的倒數計時頁（分層練習請用 tasks 的 timer）
    LS.exit(h, {q, ans, rubric})                    出口題＋參考答案（rubric 不投影，只出現在教師版紙本）
    LS.tally(h, {q, levels})                        自評／舉手統計
+   LS.summary(h, {head, items})                    本節核心知識小結（每份簡報的最後一頁）
    LS.tiers(h, tiers)                              A／B／C 三層題目一覽（只看題目，不含提示與答案）
    LS.hook(h, {story, pic, video, guess, ask})     懸念引入：情境圖或短片＋故事＋先猜＋懸念問題
    LS.anim(h, {scenes, vb})                        分幕動畫＋字幕＋預錄語音（例：粵語旁白）
@@ -385,6 +386,15 @@
     if (rb) rb.onclick = report;
   }
 
+  // 本節核心知識小結：每份簡報的最後一頁，只放這節課最重要的 3～4 點知識
+  function summary(h, o) {
+    o = o || {};
+    h.innerHTML = `<div class="ls ls-summary">
+      <div class="ls-head">${o.head || '本節核心知識'}</div>
+      <ol class="ls-sum-list">${(o.items || []).map(t => `<li><span>${t}</span></li>`).join('')}</ol>
+    </div>`;
+  }
+
   function tiers(h, list) {
     h.innerHTML = `<div class="ls ls-tiers">${(list || []).map(t => {
       const T = TIER[t.tier] || TIER.B;
@@ -473,5 +483,5 @@
     draw();
   }
 
-  window.LS = { report, goals, tasks, check, mistake, timer, exit, tally, tiers, anim, hook, TIER };
+  window.LS = { report, goals, summary, tasks, check, mistake, timer, exit, tally, tiers, anim, hook, TIER };
 })();

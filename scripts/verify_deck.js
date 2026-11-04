@@ -324,6 +324,12 @@ if (fs.existsSync(idxPath)) {
 
 /* ---------- 報告 ---------- */
 const pages = slideCount + DECK.length;
+// [課堂版] 每份簡報至少 25 頁（含階段頁，即畫面右下角的總頁數），最後一頁是核心知識小結
+const MIN_PAGES = 25;
+if (DECK.length && pages < MIN_PAGES) err(`總頁數 ${pages}（含階段頁），至少要 ${MIN_PAGES} 頁`);
+const lastChap = DECK[DECK.length - 1];
+const lastSlide = lastChap && lastChap.slides && lastChap.slides[lastChap.slides.length - 1];
+if (lastSlide && !/LS\.summary\s*\(/.test(String(lastSlide.visual))) err('最後一頁必須是核心知識小結（LS.summary）');
 if (!quiet) {
   console.log('');
   console.log('📊 ' + path.resolve(dir));

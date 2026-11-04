@@ -22,7 +22,8 @@ lesson.json（UTF-8）：
   phases 每項：{"time": "0–5 分鐘", "title": "給學生看的階段名稱（簡報用）",
                "teacher_title": "教師用的階段名稱（教案用，選填）", "spiral": "螺旋路徑位置（教案用，選填）", "color": "#RRGGBB（選填）",
                "sections": [{"code": "1-1", "name": "節名", "kind": "元件種類"}]}
-  kind 可用：goals、tasks、drill（三層題目＋計時同頁）、hook（懸念引入）、tiers、check、mistake、timer、exit、tally、anim、slider、stepper、static
+  每份簡報至少 25 頁（含階段頁），最後一頁的 kind 必須是 summary（核心知識小結）。
+  kind 可用：goals、summary、tasks、drill（三層題目＋計時同頁）、hook（懸念引入）、tiers、check、mistake、timer、exit、tally、anim、slider、stepper、static
   簡報上的階段名稱與小節名稱是給學生看的：寫成吸引學生的任務名稱，不寫教師的動作（如「巡視」）。
   各階段時間必須從 0 分鐘開始、首尾相接、總長 40 分鐘。未定義的欄位一律報錯。
 
@@ -68,6 +69,7 @@ TOP_KEYS = {'title', 'grade', 'topic', 'goal', 'prior', 'focus', 'difficulty',
 PHASE_KEYS = {'time', 'title', 'teacher_title', 'spiral', 'color', 'sections'}
 SEC_KEYS = {'code', 'name', 'kind'}
 LESSON_MINUTES = 40
+MIN_PAGES = 25
 
 EXIT_CONFIG, EXIT_EXISTS, EXIT_MATHJAX = 2, 3, 4
 
@@ -147,7 +149,7 @@ SLIDES = {
           { tier: 'A', q: '請填：A 層基礎支持題（附提示）。', hints: ['請填：提示 1（重讀題目）。', '請填：提示 2（相關概念）。'], ans: '請填' },
           { tier: 'B', q: '請填：B 層核心達標題。', hints: ['請填：提示。'], ans: '請填' },
           { tier: 'C', q: '請填：C 層延伸挑戰題（解釋、比較或遷移）。', ans: '請填' }
-        ], { timer: 7, watch: ['請填：巡視觀察重點（標明概念／程序／粗心）'] })   // timer 依階段長度調整；watch 只印在教師版
+        ], { timer: 6, watch: ['請填：巡視觀察重點（標明概念／程序／粗心）'] })   // timer 依階段長度調整；watch 只印在教師版
       }''',
     'hook': HEAD + '''
         title: '請填：一個讓人好奇的問題',
@@ -159,6 +161,11 @@ SLIDES = {
           ask: '請填：懸念問題（本節學完才能回答）',
           later: '學完今天的內容，你就能自己找出答案！'
         })
+      }''',
+    'summary': HEAD + '''
+        title: '本節核心知識小結',
+        points: ['一起讀一次，抄進筆記。'],
+        visual: (h) => LS.summary(h, { items: ['請填：核心知識一', '請填：核心知識二', '請填：核心知識三'] })
       }''',
     'tiers': HEAD + '''
         title: '請填：選擇你的挑戰',
@@ -353,6 +360,13 @@ def load_config(path):
                 errs.append(f'{ws}.name 必填')
             if kind not in SLIDES:
                 errs.append(f'{ws}.kind「{kind}」不支援，可用：{"、".join(SLIDES)}')
+    if phases and all(isinstance(ph, dict) and isinstance(ph.get('sections'), list) and ph['sections'] for ph in phases):
+        total = len(phases) + sum(len(ph['sections']) for ph in phases)
+        if total < MIN_PAGES:
+            errs.append(f'總頁數 {total}（含階段頁），至少要 {MIN_PAGES} 頁')
+        last = phases[-1]['sections'][-1]
+        if not isinstance(last, dict) or last.get('kind') != 'summary':
+            errs.append('最後一頁的 kind 必須是 summary（核心知識小結）')
     if phases and clock != LESSON_MINUTES:
         errs.append(f'各階段總長為 {clock} 分鐘，應為 {LESSON_MINUTES} 分鐘')
     if errs:

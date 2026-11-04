@@ -14,7 +14,7 @@
   const got = [];
   let cur = null;
   window.LS = {
-    goals: noop, check: noop, mistake: noop, timer: noop, hook: noop, tally: noop, tiers: noop, anim: noop, TIER,
+    goals: noop, summary: noop, check: noop, mistake: noop, timer: noop, hook: noop, tally: noop, tiers: noop, anim: noop, TIER,
     tasks: (h, tiers, opt) => got.push({ kind: 'tasks', slide: cur, tiers: tiers || [], opt: opt || {} }),
     exit: (h, o) => got.push({ kind: 'exit', slide: cur, o: o || {} }),
   };
