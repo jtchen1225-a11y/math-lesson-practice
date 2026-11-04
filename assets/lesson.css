@@ -25,6 +25,10 @@
 .ls-btn:focus-visible, .ls-tab:focus-visible, .ls-count:focus-visible { outline: 4px solid #f59e0b; outline-offset: 2px; }
 
 /* 分層任務：A／B／C 三張卡同頁顯示 */
+/* 三層同頁放不下時不能拆頁，所以這類頁面把右欄放寬，題目少換行；窄視窗（單欄）不適用 */
+@media (min-width: 1081px) {
+  .slide:has(.slide-visual .ls-tasks), .slide:has(.slide-visual .ls-summary) { grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr); }
+}
 .ls-tasks { gap: 10px; }
 .ls-card { display: none; flex-direction: column; gap: 4px; border: 2px solid var(--tc); border-left-width: 12px; border-radius: 14px; background: #fff; padding: 6px 14px; }
 .ls-card.show { display: flex; }
