@@ -34,11 +34,33 @@
   function overflowOf(box) {
     return !!box && box.clientHeight > 0 && box.scrollHeight > box.clientHeight + 2;
   }
+  // [課堂版] 視覺欄放不下時，只縮繪圖（SVG）讓出空間；公式、字幕、滑桿維持原大小。
+  // 高度記在 host 的 CSS 變數：自寫滑桿每次重畫都換新的 <svg>，變數才留得住；同一頁只縮不放，拖滑桿時版面不跳動。
+  const MIN_DRAWING_PX = 160;
+  function fitDrawing() {
+    const vis = slideEl.querySelector('.slide-visual'), host = vis && vis.querySelector('.visual-host');
+    if (!host) return;
+    const over = vis.scrollHeight - vis.clientHeight;
+    if (over <= 2) return;
+    let big = null, bigH = 0;
+    host.querySelectorAll('svg').forEach(s => {
+      if (s.closest('mjx-container')) return;
+      const r = s.getBoundingClientRect().height;
+      if (r > bigH) { big = s; bigH = r; }
+    });
+    if (!big || bigH <= MIN_DRAWING_PX) return;
+    host.style.setProperty('--mrd-drawing-max', Math.max(MIN_DRAWING_PX, Math.floor(bigH - over - 4)) + 'px');
+  }
+  function resetDrawing() {
+    const host = slideEl && slideEl.querySelector('.slide-visual .visual-host');
+    if (host) host.style.removeProperty('--mrd-drawing-max');
+  }
   function fitSlide() {
     if (!slideEl) return;
     const old = document.querySelector('.mrd-overflow-banner');
     if (old) old.remove();
     if (slideEl.classList.contains('divider') || window.innerWidth <= 1080) { delete window.MRD_OVERFLOW[idx]; return; }
+    fitDrawing();
     const where = [];
     if (overflowOf(slideEl.querySelector('.slide-info'))) where.push('概念欄');
     if (overflowOf(slideEl.querySelector('.slide-visual'))) where.push('視覺欄');
@@ -346,7 +368,7 @@
     if (!tocIsOverlay()) app.classList.toggle('toc-collapsed');
     else tocEl.classList.toggle('open');
     // 版面寬度改變 → 重新縮放（延一格等 grid 重排完成）
-    requestAnimationFrame(fitSlide);
+    requestAnimationFrame(() => { resetDrawing(); fitSlide(); });
   }
   prevBtn.onclick = prev;
   nextBtn.onclick = next;
@@ -481,7 +503,7 @@
     t.setAttribute('aria-expanded', String(open));
     t.setAttribute('aria-label', open ? '收合教具列' : '展開教具列');
     t.title = (open ? '收合教具列' : '展開教具列') + ' (T)';
-    requestAnimationFrame(fitSlide);
+    requestAnimationFrame(() => { resetDrawing(); fitSlide(); });
   }
   $('dkToggle').onclick = () => setDock($('dock').classList.contains('collapsed'));
 
@@ -489,13 +511,15 @@
     if (!document.fullscreenElement) (document.documentElement.requestFullscreen && document.documentElement.requestFullscreen());
     else document.exitFullscreen();
   };
-  window.addEventListener('resize', () => { fitPen(); fitSlide(); fitZoomHost(); });
+  window.addEventListener('resize', () => { fitPen(); resetDrawing(); fitSlide(); fitZoomHost(); });
   // 拖動滑桿／步驟器時，說明文字行數可能改變（例如步驟說明從一行變兩行），
   // 導致視覺欄需要重新量高縮放；用 rAF 去抖，避免拖曳過程重複計算
-  let _refitRAF = null;
+  let _refitRAF = null, _refitLate = null;
   slideEl.addEventListener('input', () => {
     if (_refitRAF) return;
     _refitRAF = requestAnimationFrame(() => { _refitRAF = null; fitSlide(); });
+    clearTimeout(_refitLate);
+    _refitLate = setTimeout(fitSlide, 250);   // [課堂版] 滑桿更新公式時 MathJax 排版較慢，排完再量一次
   });
   fitPen();
 
@@ -581,6 +605,23 @@
       fitSlide();
       if (flat[i].type === 'divider') continue;
       const m = measureSlide();
+      // [課堂版] 滑桿拖到不同值時也不可超出（每個滑桿取最多 12 個值，含兩端）；字級仍以初始畫面為準
+      for (const r of slideEl.querySelectorAll('.visual-host input[type="range"]')) {
+        const init = r.value, lo = +r.min, hi = +r.max;
+        for (let k = 0; k <= 11; k++) {
+          r.value = String(lo + (hi - lo) * k / 11);
+          r.dispatchEvent(new Event('input', { bubbles: true }));
+          if (window.MathJax && MathJax.typesetPromise) { try { await MathJax.typesetPromise([slideEl]); } catch (e) {} }
+          await new Promise(res => setTimeout(res, 30));
+          fitSlide();
+          (window.MRD_OVERFLOW[i] || []).forEach(w => {
+            const tag = `${w}（滑桿值 ${r.value}）`;
+            if (!m.overflow.includes(w) && !m.overflow.includes(tag)) m.overflow.push(tag);
+          });
+        }
+        r.value = init;
+        r.dispatchEvent(new Event('input', { bubbles: true }));
+      }
       const s = flat[i];
       report.push(Object.assign({ page: i + 1, sec: s.sec, title: s.title }, m));
       const bad = [];

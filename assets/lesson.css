@@ -102,8 +102,11 @@
 .ls-anim .ls-actions { align-items: center; }
 .ls-anim-r { flex: 1; min-width: 160px; accent-color: var(--ct); }
 
-/* 矮螢幕（例：720p 投影機）：教學文字維持 28pt，只縮間距、按鈕與計時數字 */
-@media (max-height: 800px) {
+/* 視覺欄放不下時，engine.js 的 fitDrawing 用這個變數縮繪圖（放大層不受影響） */
+.slide-visual .visual-host svg:not(mjx-container svg) { max-height: var(--mrd-drawing-max, none) !important; }
+
+/* 矮或窄的螢幕（例：720p 投影機）：教學文字維持 28pt，只縮間距、按鈕與計時數字 */
+@media (max-height: 900px), (max-width: 1200px) {
   .ls { gap: 8px; }
   .slide-visual .visual-host > .ls { padding-top: 28px; }
   .ls-q { padding: 6px 14px; border-radius: 12px; }
