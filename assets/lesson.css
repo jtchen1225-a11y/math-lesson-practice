@@ -6,7 +6,7 @@
 .slide-visual .visual-host > .ls { padding-top: 34px; }   /* 讓出右上角「🔍 放大」按鈕 */
 .ls { display: flex; flex-direction: column; gap: 14px; text-align: left; color: var(--ink); }
 .ls-q, .ls-list li, .ls-note, .ls-hints li, .ls-ans, .ls-ot, .ls-why, .ls-steps li,
-.ls-box, .ls-rub, .ls-tl, .ls-tag, .ls-head, .ls-key { font-size: var(--mrd-body); line-height: 1.45; }
+.ls-box, .ls-tl, .ls-tag, .ls-head, .ls-key { font-size: var(--mrd-body); line-height: 1.45; }
 
 .ls-head { font-weight: 900; color: var(--ct); }
 .ls-tag { display: inline-block; align-self: flex-start; font-weight: 900; color: var(--tc, var(--ct));
@@ -32,7 +32,8 @@
 .ls-card .ls-btn { font-size: 22px; padding: 1px 14px; }
 .ls-clockbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 26px; font-weight: 900; color: var(--ct); }
 .ls-clockbar .ls-clock { font-size: 48px; line-height: 1; }
-.ls-clockbar.done .ls-clock { color: #e11d48; }
+.ls-clockbar.done .ls-clock, .ls-timer.done .ls-clock { color: #e11d48; animation: ls-blink 1s linear 6; }
+@keyframes ls-blink { 50% { opacity: .25; } }
 .ls-hints { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: hint; }
 .ls-hints li { display: none; counter-increment: hint; background: #fffbeb; border: 1.5px dashed #f59e0b; border-radius: 12px; padding: 8px 14px; }
 .ls-hints li::before { content: '提示 ' counter(hint) '：'; font-weight: 900; color: #b45309; }
@@ -65,14 +66,19 @@
 .ls-clockwrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
 .ls-clock { font-weight: 900; line-height: 1; color: var(--ct); font-variant-numeric: tabular-nums; }
 .ls-clockwrap .ls-clock { display: block; width: 100%; font-size: 140px; }
-.ls-timer.done .ls-clock { color: #e11d48; }
 .ls-tips { align-self: stretch; text-align: left; }
 
-/* 出口題 */
+/* 分步顯示 */
 .ls-view { display: none; flex-direction: column; gap: 12px; }
 .ls-view.show { display: flex; }
-.ls-rub { border-left: 10px solid var(--rc); background: #fff; border-radius: 12px; padding: 8px 14px; }
-.ls-rub b { color: var(--rc); margin-right: 10px; }
+
+/* 課堂紀錄 */
+.ls-report { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(23, 32, 51, .55); }
+.ls-report-body { width: min(1100px, 92vw); max-height: 88vh; overflow: auto; background: #fff; color: var(--ink); border-radius: 18px; padding: 22px 28px; font-size: 22px; line-height: 1.45; --ct: #2563eb; }
+.ls-report-body h2 { margin: 0 0 6px; font-size: 32px; }
+.ls-report-body table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.ls-report-body th, .ls-report-body td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.ls-report-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 
 /* 三層一覽 */
 .ls-tiers { gap: 12px; }
@@ -106,7 +112,7 @@
 .slide-visual .visual-host svg:not(mjx-container svg) { max-height: var(--mrd-drawing-max, none) !important; }
 
 /* 矮或窄的螢幕（例：720p 投影機）：教學文字維持 28pt，只縮間距、按鈕與計時數字 */
-@media (max-height: 900px), (max-width: 1200px) {
+@media (max-height: 950px), (max-width: 1200px) {
   .ls { gap: 8px; }
   .slide-visual .visual-host > .ls { padding-top: 28px; }
   .ls-q { padding: 6px 14px; border-radius: 12px; }
@@ -127,7 +133,7 @@
   .ls-card .ls-tier-q { line-height: 1.3; }
   .ls-card .ls-btn { font-size: 20px; }
   .ls-ask { padding: 2px 12px; }
-  .ls-hints li, .ls-ans, .ls-box, .ls-rub { padding: 4px 12px; }
+  .ls-hints li, .ls-ans, .ls-box { padding: 4px 12px; }
   .ls-tiers { gap: 6px; }
   .ls-tier { padding: 2px 12px; }
   .ls-sub { padding: 2px 12px; }

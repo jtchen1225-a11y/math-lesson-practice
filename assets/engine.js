@@ -316,6 +316,7 @@
       slideEl.appendChild(vis);
 
       // 視覺內容：字串 or 函式
+      window.MRD_SLIDE_KEY = s.sec;   // [課堂版] 課堂元件依此保存本頁狀態
       if (typeof s.visual === 'function') {
         try { s.visual(host); } catch (e) { host.innerHTML = '<p style="color:#e11d48">視覺載入失敗</p>'; console.error(e); }
       } else {
@@ -540,6 +541,7 @@
   });
 
   buildTOC();
+  window.MRD_RERENDER = render;   // [課堂版] 清除課堂紀錄後重畫目前頁面
 
   // 深連結：#present 直接進入簡報；#p=N 直接跳到第 N 頁
   (function bootFromHash() {
