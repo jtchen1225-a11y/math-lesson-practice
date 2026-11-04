@@ -1,23 +1,24 @@
 {
   "type_name": "練習課",
+  "spiral": "能力提升螺旋：基礎辨識 → 獨立應用 → 變式比較 → 綜合解難",
   "phases": [
-    {"time": "0–5 分鐘", "title": "暖身診斷：你在哪一關？", "teacher_title": "診斷起步題", "sections": [
+    {"time": "0–5 分鐘", "title": "暖身診斷：你在哪一關？", "teacher_title": "診斷起步題", "spiral": "基礎辨識", "sections": [
       {"code": "1-1", "name": "今天的目標", "kind": "goals"},
       {"code": "1-2", "name": "診斷快問", "kind": "check"}
     ]},
-    {"time": "5–10 分鐘", "title": "解題秘笈大公開", "teacher_title": "方法回顧與關鍵步驟", "sections": [
+    {"time": "5–10 分鐘", "title": "解題秘笈大公開", "teacher_title": "方法回顧與關鍵步驟", "spiral": "基礎辨識（方法與檢查）", "sections": [
       {"code": "2-1", "name": "解題秘笈", "kind": "stepper"},
       {"code": "2-2", "name": "自我檢查", "kind": "check"}
     ]},
-    {"time": "10–25 分鐘", "title": "兩輪闖關：基本功到變化題", "teacher_title": "分層練習兩輪＋巡視", "sections": [
+    {"time": "10–25 分鐘", "title": "兩輪闖關：基本功到變化題", "teacher_title": "分層練習兩輪＋巡視", "spiral": "獨立應用 → 變式比較", "sections": [
       {"code": "3-1", "name": "第一關：基本功", "kind": "drill"},
-      {"code": "3-2", "name": "第二關：變化題", "kind": "drill"}
+      {"code": "3-2", "name": "第二關：比一比", "kind": "drill"}
     ]},
-    {"time": "25–35 分鐘", "title": "抓錯偵探＋再試一次", "teacher_title": "錯誤門診＋再試一題", "sections": [
+    {"time": "25–35 分鐘", "title": "抓錯偵探＋綜合解難", "teacher_title": "錯誤門診＋綜合解難", "spiral": "綜合解難", "sections": [
       {"code": "4-1", "name": "抓錯偵探", "kind": "mistake"},
-      {"code": "4-2", "name": "再試一次", "kind": "tasks"}
+      {"code": "4-2", "name": "綜合解難", "kind": "tasks"}
     ]},
-    {"time": "35–40 分鐘", "title": "最後一關＋幫自己打分", "teacher_title": "出口題＋自我評估", "sections": [
+    {"time": "35–40 分鐘", "title": "最後一關＋幫自己打分", "teacher_title": "出口題＋自我評估", "spiral": "學習證據", "sections": [
       {"code": "5-1", "name": "出口挑戰", "kind": "exit"},
       {"code": "5-2", "name": "我的程度", "kind": "tally"}
     ]}

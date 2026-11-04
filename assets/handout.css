@@ -9,9 +9,9 @@ body { margin: 0; background: #eef2f8; color: #172033; font: 16px/1.5 "Microsoft
 .ho-sub { color: #4b5568; }
 .ho-who { font-size: 15px; white-space: nowrap; }
 .ho-sec > .ho-who { text-align: right; margin-top: -24px; }
-h2 { font-size: 18px; margin: 14px 0 4px; border-bottom: 2px solid #172033; padding-bottom: 2px; }
+h2 { break-after: avoid; font-size: 18px; margin: 14px 0 4px; border-bottom: 2px solid #172033; padding-bottom: 2px; }
 h2 small { font-weight: 400; font-size: 14px; }
-h3 { font-size: 16px; margin: 10px 0 4px; }
+h3 { break-after: avoid; font-size: 16px; margin: 10px 0 4px; }
 .ho-tip { margin: 2px 0 6px; color: #4b5568; font-size: 14px; }
 .ho-task { break-inside: avoid; margin-bottom: 8px; }
 .ho-task-head { display: flex; align-items: center; gap: 6px; }
@@ -37,9 +37,11 @@ td .ho-key { margin-right: 2px; }
   .ho-sec { margin: 0; box-shadow: none; width: auto; break-after: page; }
   body[data-mode="student"] .ho-sec:not([data-part="student"]),
   body[data-mode="slips"] .ho-sec:not([data-part="slips"]),
+  body[data-mode="delayed"] .ho-sec:not([data-part="delayed"]),
   body[data-mode="teacher"] .ho-sec:not([data-part="teacher"]) { display: none; }
-  .ho-sec[data-part="slips"] { padding: 6mm; }
+  .ho-sec[data-part="slips"], .ho-sec[data-part="delayed"] { padding: 6mm; }
 }
 body[data-mode="student"] .ho-sec:not([data-part="student"]),
 body[data-mode="slips"] .ho-sec:not([data-part="slips"]),
+body[data-mode="delayed"] .ho-sec:not([data-part="delayed"]),
 body[data-mode="teacher"] .ho-sec:not([data-part="teacher"]) { display: none; }
