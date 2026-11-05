@@ -8,24 +8,54 @@ window.DECK = window.DECK || [];
 (function () {
   const C = "#d97706";
 
-  window.DECK.push({
-    ch: 4,
-    time: "25–35 分鐘",
-    title: "抓錯偵探＋綜合解難",
-    color: C,
-    sections: ["4-1 抓錯偵探", "4-2 再抓一次", "4-3 綜合解難", "4-4 生活解難", "4-5 輪到你出題"],
-    slides: [
-      {
-        sec: '4-1', secName: '抓錯偵探',
-        title: '抓錯偵探：哪一步開始錯？',
-        points: ['先代入原式，看哪裏不成立。', '再找出錯的那一步。'],
-        visual: (h) => LS.mistake(h, {
+  // 拆頁：題目頁（stage: ask）與解說頁（stage: explain）共用同一份資料
+  const P_4_1 = {
           q: '解 \\(4-(x+3)=2x\\)',
           steps: ['\\(4-x+3=2x\\)', '\\(7-x=2x\\)', '\\(7=3x\\)', '\\(x=\\frac{7}{3}\\)'],
           wrong: 0,
           why: '程序錯誤：括號前是負號，\\(+3\\) 要變 \\(-3\\)。',
           fix: '\\(4-x-3=2x\\)，\\(1=3x\\)，\\(x=\\frac{1}{3}\\)'
-        })
+        };
+  const P_4_3 = [
+          { tier: 'A', q: '解 \\(6-(x+1)=x\\)。', hints: ['\\(-(x+1)=-x-1\\)。'], ans: '\\(x=\\frac{5}{2}\\)' },
+          { tier: 'B', q: '長方形長 \\((x+3)\\)、闊 2，周界 18，求 x。', hints: ['周界＝2×（長＋闊）。', '\\(2(x+3+2)=18\\)'], ans: '\\(x=4\\)' },
+          { tier: 'C', q: '哥哥比弟弟大 4 歲，歲數和的 2 倍是 36，弟弟幾歲？', hints: ['設弟弟 x 歲，哥哥 \\((x+4)\\) 歲。'], ans: '7 歲（\\(2(2x+4)=36\\)）' }
+        ];
+  const P_4_4 = [
+          { tier: 'A', q: '3 張戲票和 20 元爆谷共 200 元，戲票一張幾元？', hints: ['\\(3x+20=200\\)'], ans: '60 元' },
+          { tier: 'B', q: '一個數加 5 再乘 2 等於 24，求這個數。', hints: ['\\(2(x+5)=24\\)'], ans: '7' },
+          { tier: 'C', q: '甲比乙多 10 元，甲給乙 2 元後，甲是乙的 2 倍，乙原有幾元？', hints: ['設乙 x 元：\\(x+8=2(x+2)\\)'], ans: '4 元' }
+        ];
+  const P_4_5 = [
+          { tier: 'A', q: '改 \\(x+7=12\\) 的數字，使解變成 10。', hints: ['右邊要變成多少？'], ans: '例：\\(x+7=17\\)' },
+          { tier: 'B', q: '寫一條有括號、解是 2 的方程。', hints: ['先寫括號，再計算右邊。'], ans: '例：\\(3(x+1)=9\\)' },
+          { tier: 'C', q: '寫一條括號前有負號、解是 3 的方程，並檢驗。', hints: ['把 3 代入，算出右邊。'], ans: '例：\\(10-(x+1)=6\\)' }
+        ];
+
+  window.DECK.push({
+    ch: 4,
+    time: "25–35 分鐘",
+    title: "抓錯偵探＋綜合解難",
+    color: C,
+    sections: ["4-1 抓錯偵探", "4-1-2 抓錯偵探", "4-1-3 抓錯偵探", "4-2 再抓一次", "4-3 綜合解難", "4-3-2 綜合解難", "4-3-3 綜合解難", "4-4 生活解難", "4-4-2 生活解難", "4-4-3 生活解難", "4-5 輪到你出題", "4-5-2 輪到你出題", "4-5-3 輪到你出題"],
+    slides: [
+      {
+        sec: '4-1', secName: '抓錯偵探',
+        title: '抓錯偵探：哪一步開始錯？',
+        points: ['先代入原式，看哪裏不成立。', '再找出錯的那一步。'],
+        visual: (h) => LS.mistake(h, { ...P_4_1, stage: 'ask' })
+      },
+      {
+        sec: '4-1-2', secName: '抓錯偵探',
+        title: '抓錯偵探：哪一步開始錯？（解析）',
+        points: ['錯在哪一步？'],
+        visual: (h) => LS.mistake(h, { ...P_4_1, q: null, fix: null, stage: 'explain' })
+      },
+      {
+        sec: '4-1-3', secName: '抓錯偵探',
+        title: '抓錯偵探：哪一步開始錯？（修正）',
+        points: ['想一想：下次怎樣避免？'],
+        visual: (h) => LS.mistake(h, { ...P_4_1, q: null, steps: null, why: null, stage: 'explain' })
       },
       {
         sec: '4-2', secName: '再抓一次',
@@ -43,31 +73,55 @@ window.DECK = window.DECK || [];
         sec: '4-3', secName: '綜合解難',
         title: '綜合解難：一題用上幾招',
         points: ['先列式，再拆括號、移項。', '做完代入題目檢查。'],
-        visual: (h) => LS.tasks(h, [
-          { tier: 'A', q: '解 \\(6-(x+1)=x\\)。', hints: ['\\(-(x+1)=-x-1\\)。'], ans: '\\(x=\\frac{5}{2}\\)' },
-          { tier: 'B', q: '長方形長 \\((x+3)\\)、闊 2，周界 18，求 x。', hints: ['周界＝2×（長＋闊）。', '\\(2(x+3+2)=18\\)'], ans: '\\(x=4\\)' },
-          { tier: 'C', q: '哥哥比弟弟大 4 歲，歲數和的 2 倍是 36，弟弟幾歲？', hints: ['設弟弟 x 歲，哥哥 \\((x+4)\\) 歲。'], ans: '7 歲（\\(2(2x+4)=36\\)）' }
-        ])
+        visual: (h) => LS.tasks(h, P_4_3, { stage: 'ask' })
+      },
+      {
+        sec: '4-3-2', secName: '綜合解難',
+        title: '提示與答案（A、B 層）',
+        points: ['先自己試，卡住才開提示。'],
+        visual: (h) => LS.tasks(h, P_4_3.slice(0, 2), { stage: 'explain' })
+      },
+      {
+        sec: '4-3-3', secName: '綜合解難',
+        title: '提示與答案（C 層）',
+        points: ['先自己試，卡住才開提示。'],
+        visual: (h) => LS.tasks(h, P_4_3.slice(2, 3), { stage: 'explain' })
       },
       {
         sec: '4-4', secName: '生活解難',
         title: '生活解難：先設 x，再列式',
         points: ['題目問甚麼，就設甚麼為 x。', '解完代入情境檢查。'],
-        visual: (h) => LS.tasks(h, [
-          { tier: 'A', q: '3 張戲票和 20 元爆谷共 200 元，戲票一張幾元？', hints: ['\\(3x+20=200\\)'], ans: '60 元' },
-          { tier: 'B', q: '一個數加 5 再乘 2 等於 24，求這個數。', hints: ['\\(2(x+5)=24\\)'], ans: '7' },
-          { tier: 'C', q: '甲比乙多 10 元，甲給乙 2 元後，甲是乙的 2 倍，乙原有幾元？', hints: ['設乙 x 元：\\(x+8=2(x+2)\\)'], ans: '4 元' }
-        ])
+        visual: (h) => LS.tasks(h, P_4_4, { stage: 'ask' })
+      },
+      {
+        sec: '4-4-2', secName: '生活解難',
+        title: '提示與答案（A、B 層）',
+        points: ['先自己試，卡住才開提示。'],
+        visual: (h) => LS.tasks(h, P_4_4.slice(0, 2), { stage: 'explain' })
+      },
+      {
+        sec: '4-4-3', secName: '生活解難',
+        title: '提示與答案（C 層）',
+        points: ['先自己試，卡住才開提示。'],
+        visual: (h) => LS.tasks(h, P_4_4.slice(2, 3), { stage: 'explain' })
       },
       {
         sec: '4-5', secName: '輪到你出題',
         title: '輪到你出題：解要符合條件',
         points: ['先想好解，再倒推方程。', '出完和鄰座交換做。'],
-        visual: (h) => LS.tasks(h, [
-          { tier: 'A', q: '改 \\(x+7=12\\) 的數字，使解變成 10。', hints: ['右邊要變成多少？'], ans: '例：\\(x+7=17\\)' },
-          { tier: 'B', q: '寫一條有括號、解是 2 的方程。', hints: ['先寫括號，再計算右邊。'], ans: '例：\\(3(x+1)=9\\)' },
-          { tier: 'C', q: '寫一條括號前有負號、解是 3 的方程，並檢驗。', hints: ['把 3 代入，算出右邊。'], ans: '例：\\(10-(x+1)=6\\)' }
-        ])
+        visual: (h) => LS.tasks(h, P_4_5, { stage: 'ask' })
+      },
+      {
+        sec: '4-5-2', secName: '輪到你出題',
+        title: '提示與答案（A、B 層）',
+        points: ['先自己試，卡住才開提示。'],
+        visual: (h) => LS.tasks(h, P_4_5.slice(0, 2), { stage: 'explain' })
+      },
+      {
+        sec: '4-5-3', secName: '輪到你出題',
+        title: '提示與答案（C 層）',
+        points: ['先自己試，卡住才開提示。'],
+        visual: (h) => LS.tasks(h, P_4_5.slice(2, 3), { stage: 'explain' })
       }
     ]
   });

@@ -58,7 +58,40 @@ visual: (h) => LS.tasks(h, [ /* 同上 */ ], { timer: 7, watch: ['找錯斜邊�
 - `watch`：巡視觀察重點，不投影，只印在教師版的巡視觀察表。
 - `timer`：分鐘數。**專注時間一定要和題目同頁**，不做只有時間的頁面。可再用 `label` 改計時列名稱（預設「專注時間」）。
 - 三層圍繞**同一個核心概念**；C 層要求解釋、比較、推理或遷移，不是同型題加量。
-- 題目每題 1 行為原則（約 20 字），最多一層 2 行；720p 用 `--window 1310x862` 檢查。提示與答案全部打開時欄位可以捲動。
+- 題目每題 1 行為原則（約 20 字），最多一層 2 行。提示與答案全部打開也不可超出畫面；放不下就拆頁（見下一節）。
+
+## 拆頁：stage（放不下時用，絕不縮字）
+
+`LS.tasks`、`LS.check`、`LS.mistake`、`LS.exit` 都接受 `stage`。`validate_deck.py` 回報某頁超框時，把資料抽成常數，拆成題目頁與解說頁：
+
+```js
+const T = [ /* A、B、C 三層 */ ];
+// 題目頁：只有題目（與倒數），紙本從這一頁取得題目、提示、答案
+{ sec: '4-1', secName: '專注闖關', title: '專注 6 分鐘', points: ['選一層開始，卡住翻下一頁看提示。'],
+  visual: (h) => LS.tasks(h, T, { stage: 'ask', timer: 6, watch: ['…'] }) },
+// 解說頁：還放不下就用 slice 再拆，例如 T.slice(0, 2)、T.slice(2)
+{ sec: '4-1-2', secName: '專注闖關', title: '提示與答案（A、B、C 層）', points: ['先自己試，卡住才開提示。'],
+  visual: (h) => LS.tasks(h, T, { stage: 'explain' }) },
+
+const Q = { q: '…', options: [ /* t、why、ok */ ] };
+{ sec: '3-3', …, visual: (h) => LS.check(h, { ...Q, stage: 'ask' }) },       // 可計票、揭曉只標正解，不顯示原因
+{ sec: '3-3-2', …, visual: (h) => LS.check(h, { ...Q, stage: 'explain' }) }, // 顯示每個選項的對錯原因
+// 還放不下：q: null 不放題目（題目移到左欄 points）；only: [0, 1] 只列部分選項，字母不變
+
+const M = { q: '…', steps: [ /* … */ ], wrong: 1, why: '…', fix: '…' };
+{ sec: '5-1', …, visual: (h) => LS.mistake(h, { ...M, stage: 'ask' }) },       // 學生找錯，可標出錯誤
+{ sec: '5-1-2', …, visual: (h) => LS.mistake(h, { ...M, q: null, stage: 'explain' }) }, // 直接顯示錯因與修正
+// 還放不下：再把 steps、why 或 fix 設成 null，拆成兩頁
+
+const E = { q: '…', ans: '…', rubric: { /* … */ } };
+{ sec: '6-1', …, visual: (h) => LS.exit(h, { ...E, stage: 'ask' }) },
+{ sec: '6-1-2', …, visual: (h) => LS.exit(h, { ...E, stage: 'explain' }) },
+```
+
+- 新增的頁要在該階段的 `sections` 宣告（例：`"4-1-2 專注闖關"`），頁碼才對得上。
+- 紙本與教師版只讀 `ask` 頁，不會重複；`explain` 頁不影響學習單。
+- `stage` 頁不再有提示或解說按鈕的「全開」問題，因此只有真正放不下才拆，內容少的頁可以維持原本同頁寫法。
+- 「跟著做」頁的 `example` 展開後容易擠爆左欄：放不下時把例題獨立成一頁。
 
 ## LS.check(h, {q, options, tally})
 

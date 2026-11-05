@@ -11,12 +11,22 @@ window.DECK = window.DECK || [];
   const TX = (x, y, s, o = {}) =>
     `<text x="${x}" y="${y}" ${o.anchor ? `text-anchor="${o.anchor}"` : ''} font-size="${o.fs || 30}" font-weight="${o.fw || 800}" fill="${o.c || '#172033'}">${s}</text>`;
 
+  // 拆頁：題目頁（stage: ask）與解說頁（stage: explain）共用同一份資料
+  const P_2_2 = {
+          q: '解出 \\(x=4\\) 後，最可靠的檢查方法是？',
+          options: [
+            { t: '代入原式，看左右是否相等', ok: true, why: '直接驗證等式成立' },
+            { t: '看答案是不是整數', why: '解也可能是分數或負數' },
+            { t: '照原步驟再算一次', why: '可能重複同一個錯誤' }
+          ]
+        };
+
   window.DECK.push({
     ch: 2,
     time: "6–11 分鐘",
     title: "解題秘笈大公開",
     color: C,
-    sections: ["2-1 解題秘笈", "2-2 自我檢查", "2-3 秘笈二：負號", "2-4 代入檢驗"],
+    sections: ["2-1 解題秘笈", "2-2 自我檢查", "2-2-2 自我檢查", "2-3 秘笈二：負號", "2-4 代入檢驗"],
     slides: [
       {
         sec: '2-1', secName: '解題秘笈',
@@ -36,14 +46,13 @@ window.DECK = window.DECK || [];
         sec: '2-2', secName: '自我檢查',
         title: '解出答案後，怎樣確認對不對？',
         points: ['想一想再選，等一下要說理由。'],
-        visual: (h) => LS.check(h, {
-          q: '解出 \\(x=4\\) 後，最可靠的檢查方法是？',
-          options: [
-            { t: '代入原式，看左右是否相等', ok: true, why: '直接驗證等式成立' },
-            { t: '看答案是不是整數', why: '解也可能是分數或負數' },
-            { t: '照原步驟再算一次', why: '可能重複同一個錯誤' }
-          ]
-        })
+        visual: (h) => LS.check(h, { ...P_2_2, stage: 'ask' })
+      },
+      {
+        sec: '2-2-2', secName: '自我檢查',
+        title: '解出答案後，怎樣確認對不對？（解說）',
+        points: ['每個選項對或錯的原因。'],
+        visual: (h) => LS.check(h, { ...P_2_2, stage: 'explain' })
       },
       {
         sec: '2-3', secName: '秘笈二：負號',

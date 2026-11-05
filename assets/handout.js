@@ -15,8 +15,9 @@
   let cur = null;
   window.LS = {
     goals: noop, summary: noop, check: noop, mistake: noop, timer: noop, hook: noop, tally: noop, tiers: noop, anim: noop, TIER,
-    tasks: (h, tiers, opt) => got.push({ kind: 'tasks', slide: cur, tiers: tiers || [], opt: opt || {} }),
-    exit: (h, o) => got.push({ kind: 'exit', slide: cur, o: o || {} }),
+    // stage:'explain' 是投影用的解說頁，題目已由 ask 頁提供，紙本不重複
+    tasks: (h, tiers, opt) => { if ((opt || {}).stage !== 'explain') got.push({ kind: 'tasks', slide: cur, tiers: tiers || [], opt: opt || {} }); },
+    exit: (h, o) => { if ((o || {}).stage !== 'explain') got.push({ kind: 'exit', slide: cur, o: o || {} }); },
   };
   (window.DECK || []).forEach(chap => (chap.slides || []).forEach(s => {
     cur = s;

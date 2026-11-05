@@ -109,6 +109,30 @@
   .ictrl input[type="range"] { width: min(320px, 80vw); }
 }
 
+/* [版面修正] 矮螢幕（例：1366×657）：只收邊距、按鈕與說明小字，教學文字維持 28pt */
+@media (max-height: 760px) and (min-width: 1081px) {
+  .topbar { height: 40px; }
+  .stage { padding-top: 4px; }
+  .slide { padding: 6px 16px; }
+  .slide-visual { padding: 4px 10px; }
+  .slide-visual .visual-host > .ls { padding-top: 22px; }
+  .badge { margin-bottom: 2px; padding: 1px 10px; }
+  .step-hint { display: none; }
+  .ictrl { margin-top: 2px; }
+  .ictrl input[type="range"] { height: 22px; }
+  .controlbar { padding: 2px 2px 3px; }
+  .nav-btn { padding: 3px 14px; }
+  .ls-sub { min-height: 0; }
+  .vis-zoom { top: 2px; right: 6px; padding: 1px 10px; }
+}
+/* 封面不列小節清單（拆頁後清單很長，目錄裏已有）；矮螢幕不放階段卡，確保「開始上課」按鈕不用捲動就按得到 */
+.cover-card .cc-list { display: none; }
+@media (max-height: 800px) {
+  #coverChapters { display: none; }
+  .cover-inner { padding-top: 20px; padding-bottom: 20px; }
+  .cover-title { font-size: clamp(34px, 7vh, 56px); }   /* 封面標題不是教學文字；長標題也不可把按鈕推出畫面 */
+}
+
 /* 超出提示：放在頂部列，不蓋住投影片內容 */
 .mrd-overflow-banner {
   flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

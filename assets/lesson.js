@@ -15,6 +15,10 @@
    LS.tiers(h, tiers)                              A／B／C 三層題目一覽（只看題目，不含提示與答案）
    LS.hook(h, {story, pic, video, guess, ask})     懸念引入：情境圖或短片＋故事＋先猜＋懸念問題
    LS.anim(h, {scenes, vb})                        分幕動畫＋字幕＋預錄語音（例：粵語旁白）
+
+   拆頁（內容放不下時用，絕不縮字）：tasks、check、mistake、exit 都接受 stage
+     stage:'ask'      題目頁：只放題目，不放提示、答案、解說
+     stage:'explain'  解說頁：放提示、答案或解說；紙本只讀 ask 頁，不會重複
    ============================================================ */
 (function () {
   const TIER = {
@@ -163,6 +167,7 @@
       </div>`;
     }).join('')}</div>`;
     if (ck) ck.bind(h, h.querySelector('.ls-clockbar'));
+    if (opt.stage === 'ask') { $$(h, '.ls-card .ls-actions, .ls-hints, .ls-ans').forEach(x => x.remove()); return; }
     const cst = slot('cards');
     cst.list = cst.list || [];
     $$(h, '.ls-card').forEach((c, i) => {
@@ -193,12 +198,24 @@
     o = o || {};
     const opts = o.options || [];
     const L = 'ABCDEFGH';
+    if (o.stage === 'explain') {
+      // 解說頁：直接顯示對錯與原因，沒有計票與按鈕；only 可只列部分選項（字母不變），q 省略時不顯示題目
+      const only = o.only || opts.map((_, i) => i);
+      h.innerHTML = `<div class="ls ls-check revealed">
+        ${o.q ? `<div class="ls-q">${o.q}</div>` : ''}
+        <div class="ls-opts">${only.map(i => `<div class="ls-opt${opts[i].ok ? ' ok' : ''}">
+          <span class="ls-key">${L[i]}</span><span class="ls-ot">${opts[i].t}</span>
+          ${opts[i].why ? `<div class="ls-why">${opts[i].why}</div>` : ''}
+        </div>`).join('')}</div>
+      </div>`;
+      return;
+    }
     h.innerHTML = `<div class="ls ls-check">
       <div class="ls-q">${o.q}</div>
       <div class="ls-opts">${opts.map((x, i) => `<div class="ls-opt" data-i="${i}">
         <span class="ls-key">${L[i]}</span><span class="ls-ot">${x.t}</span>
         ${o.tally !== false ? `<button class="ls-count ls-ui" data-i="${i}" title="點一下＋1">0</button>` : ''}
-        ${x.why ? `<div class="ls-why">${x.why}</div>` : ''}
+        ${x.why && o.stage !== 'ask' ? `<div class="ls-why">${x.why}</div>` : ''}
       </div>`).join('')}</div>
       <div class="ls-actions ls-ui">
         <button class="ls-btn ls-ui" data-act="reveal">揭曉</button>
@@ -223,17 +240,24 @@
   function mistake(h, o) {
     o = o || {};
     const steps = o.steps || [];
+    const ask = o.stage === 'ask', explain = o.stage === 'explain';
     h.innerHTML = `<div class="ls ls-mistake">
       <div class="ls-tag">${o.who || '某位同學的解法（不公開姓名）'}</div>
       ${o.q ? `<div class="ls-q">${o.q}</div>` : ''}
       <ol class="ls-steps">${steps.map((t, i) => `<li data-i="${i}">${t}</li>`).join('')}</ol>
-      ${o.why ? `<div class="ls-why ls-box">${o.why}</div>` : ''}
-      ${o.fix ? `<div class="ls-fix ls-box">${Array.isArray(o.fix) ? o.fix.join('<br>') : o.fix}</div>` : ''}
-      <div class="ls-actions ls-ui">
+      ${o.why && !ask ? `<div class="ls-why ls-box">${o.why}</div>` : ''}
+      ${o.fix && !ask ? `<div class="ls-fix ls-box">${Array.isArray(o.fix) ? o.fix.join('<br>') : o.fix}</div>` : ''}
+      ${explain ? '' : `<div class="ls-actions ls-ui">
         <button class="ls-btn ls-ui" data-act="find">標出錯誤</button>
-        ${o.fix ? '<button class="ls-btn ls-ui" data-act="fix">看修正</button>' : ''}
-      </div>
+        ${o.fix && !ask ? '<button class="ls-btn ls-ui" data-act="fix">看修正</button>' : ''}
+      </div>`}
     </div>`;
+    if (explain) {
+      // 解說頁：直接標出錯誤並顯示原因與修正；省略 steps、why 或 fix 可再拆成多頁
+      h.querySelector('.ls-mistake').classList.add('found', 'fixed');
+      $$(h, '.ls-steps li').forEach((li, i) => li.classList.toggle('bad', i === o.wrong));
+      return;
+    }
     const st = slot('mistake');
     const root = h.querySelector('.ls-mistake'), fb = h.querySelector('[data-act="find"]'), xb = h.querySelector('[data-act="fix"]');
     const paint = () => {
@@ -299,6 +323,20 @@
   // 出口題：投影畫面只有題目與參考答案。rubric（判準與下一節安排）這裏不顯示，只印在教師版紙本，避免標籤學生。
   function exit(h, o) {
     o = o || {};
+    if (o.stage === 'explain') {
+      h.innerHTML = `<div class="ls ls-exit">
+        ${o.q ? `<div class="ls-q">${o.q}</div>` : ''}
+        <div class="ls-ans show">答：${o.ans || ''}</div>
+      </div>`;
+      return;
+    }
+    if (o.stage === 'ask') {
+      h.innerHTML = `<div class="ls ls-exit">
+        <div class="ls-tag">出口挑戰（獨立完成，約 2～3 分鐘）</div>
+        <div class="ls-q">${o.q}</div>
+      </div>`;
+      return;
+    }
     h.innerHTML = `<div class="ls ls-exit">
       <div class="ls-tag">出口挑戰（獨立完成，約 2～3 分鐘）</div>
       <div class="ls-q">${o.q}</div>

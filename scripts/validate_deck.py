@@ -9,6 +9,7 @@
   --window 1920x1080      版面檢查（?check）用的視窗大小
   --cap 2001              每個滑桿最多實測幾個值；合法值更多時抽樣並在報告標示
   --skip-layout           不做版面檢查
+  --viewports A B ...     全狀態版面檢查用的視窗（預設 1280x720 1366x657 1536x730 1920x937）
   --browser <exe>         指定 Edge 或 Chrome（預設自動找已安裝的 Edge，其次 Chrome）
 
 檢查內容：
@@ -17,7 +18,9 @@
      用無頭瀏覽器（獨立暫存設定、封鎖 DNS）載入實際的 engine.js、svg.js、MathJax 與章節檔，
      逐頁、逐滑桿觸發真正的 input／change 事件並檢查（見 validate_harness.js 檔頭）。成品資料夾不會被修改。
   3. 公式：MathJax 錯誤節點、殘留原始 TeX（互動過程中每個值都檢查）。
-  4. 版面：用 index.html?check 在指定視窗大小量測（超出、實際字級）。
+  4. 版面：用 index.html?check 在指定視窗大小量測（超出、實際字級）；
+     全狀態版面（validate_states.js）在多種視窗逐頁實際點開提示、答案、揭曉、修正，拖步驟、滑桿、動畫，
+     每個狀態都不可超框、圖中文字不可低於 28pt，封面開始按鈕要在畫面內。放不下就拆頁，不可縮字。
   5. 數學內容：程式不判定，一律列為「需人工核對」。
 
 結束代碼：0 全部通過（數學內容仍須人工核對）｜1 有任何失敗｜2 找不到瀏覽器、Node 或 site 不完整｜3 瀏覽器驗證未完成（逾時或沒有結果）
@@ -33,10 +36,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 HARNESS = HERE / 'validate_harness.js'
+STATES = HERE / 'validate_states.js'
+VIEWPORTS = ['1280x720', '1366x657', '1536x730', '1920x937']
 VERIFY = HERE / 'verify_deck.js'
 FORMULA_KINDS = {'公式排版錯誤', '公式未排版'}
 BROWSERS = [
@@ -106,6 +112,33 @@ def layout_check(site, browser, window, tmp):
         return {'status': '失敗', 'viewport': rep['viewport'], 'pages': [], 'failPages': ['沒有任何內容頁被渲染']}
     bad = [p for p in rep['pages'] if p['overflow'] or p['small'] or p['merr'] or p['raw'] or p['failed']]
     return {'status': '通過' if not bad else '失敗', 'viewport': rep['viewport'], 'pages': rep['pages'], 'failPages': [p['page'] for p in bad]}
+
+
+def states_check(site, browser, viewports, tmp):
+    """全狀態版面：每種視窗 × 每頁 × 每個互動狀態。在暫存複本注入腳本，成品資料夾不會被修改。"""
+    work = Path(tmp) / 'site-states'
+    shutil.copytree(site, work)
+    shutil.copy(STATES, work / 'mrd-validate-states.js')
+    idx = (work / 'index.html').read_text(encoding='utf-8')
+    (work / 'index.html').write_text(idx.replace('</body>', '<script src="mrd-validate-states.js"></script></body>'), encoding='utf-8')
+
+    def one(vp):
+        w, h = map(int, vp.split('x'))
+        # 無頭瀏覽器的視窗含瀏覽器外框：加上外框才會得到指定的可視範圍；實際值記在結果內
+        dom = run_browser(browser, (work / 'index.html').as_uri(), Path(tmp) / f'profile-s{w}', f'{w + 30},{h + 142}', 900_000, 900)
+        m = re.search(r'<pre id="mrd-states-result">(.*?)</pre>', dom or '', re.S)
+        return vp, (json.loads(html.unescape(m.group(1))) if m else None)
+
+    with ThreadPoolExecutor(len(viewports)) as ex:
+        results = list(ex.map(one, viewports))
+    undone = [vp for vp, r in results if r is None]
+    runs = [dict(r, requested=vp) for vp, r in results if r is not None]
+    if undone or not runs:
+        return {'status': '未完成', 'reason': f'以下視窗沒有取得結果：{undone}', 'runs': runs}
+    issues = sum(len(r['issues']) for r in runs)
+    empty = [r['requested'] for r in runs if not r['pages']]
+    return {'status': '失敗' if issues or empty else '通過', 'runs': runs, 'issues': issues, 'states': sum(r['states'] for r in runs),
+            'failPages': sorted({q['page'] for r in runs for q in r['issues']})}
 
 
 def handout_check(site, browser, tmp):
@@ -193,14 +226,25 @@ def write_report(path_md, path_json, data):
                 L.append(f"- 第 {p['page']} 頁：超出 {p['overflow'] or '無'}；小於 28pt {len(p['small'])} 處；MathJax 錯誤 {p['merr']}；殘留 TeX {p['raw']}")
     else:
         L.append(f"{lay.get('status', '未執行')}：{lay.get('reason', '')}")
+    L += ['', '## 4b. 全狀態版面（多種視窗 × 所有互動狀態）', '']
+    sts = data.get('states') or {}
+    if sts.get('status') in ('通過', '失敗'):
+        L.append(f"共量測 {sts['states']} 個畫面狀態：{sts['status']}。放不下就用 `stage` 拆頁（見 `references/lesson-components.md`），不可縮字。")
+        L += ['', '| 視窗 | 頁 | 標題 | 狀態 | 視覺欄高／寬超出 px | 概念欄高／寬超出 px | 公式超出 px | 圖中最小字 px |', '|------|----|------|------|------|------|------|------|']
+        for r in sts['runs']:
+            for q in r['issues'][:150]:
+                L.append(f"| {r['viewport'][0]}×{r['viewport'][1]} | {q['page']} | {q['title']} | {q['state']} | {q['vH']}／{q['vW']} | {q['iH']}／{q['iW']} | {q['clip']} | {q['minSvg'] or '—'} |")
+    else:
+        L.append(f"{sts.get('status', '未執行')}：{sts.get('reason', '')}")
     L += ['', '## 5. 數學內容', '', '**需人工核對**：程式不判定數學是否正確、圖形是否符合題意、公式與圖是否表達同一件事（除非頁面自訂 selfCheck）。驗證通過不代表數學內容正確。', '']
     L += ['## 這份檢查抓不到的問題', '',
           '- 沒有讓程式拋錯、也沒有產生無效數字的數學錯誤（例如公式寫錯、答案錯、圖形比例錯）。',
           '- 不經過 SV 的自寫繪圖（例如自己組 `<text>`、`<rect>` 字串）只能靠 SVG 屬性掃描，無法知道哪一行算錯。',
           '- 退化但數值有限的圖形（三點共線、邊長為 0、直角框方向錯）不會被判為錯誤。',
           '- 多滑桿只測「逐一掃描＋端點組合」，不是全部組合。',
-          '- 滑桿以外的互動（按鈕、點擊圖形、拖曳）不在掃描範圍；課堂元件（LS）的按鈕只確認初次繪製無錯誤，揭露後的內容需人工點一遍。',
-          '- 版面結果只代表指定的視窗大小。']
+          '- 課堂元件的按鈕會實際點開來量版面，但揭露內容的文字與數學是否正確，仍需人工看一遍。',
+          '- 自製的點擊圖形或拖曳互動不在掃描範圍。',
+          '- 版面結果只代表量過的視窗；語意問題（拆頁後題目不見、「同一圖」的圖不在同一頁）量不出來，要親眼看截圖。']
     path_md.write_text('\n'.join(L) + '\n', encoding='utf-8')
 
 
@@ -216,6 +260,7 @@ def main():
     ap.add_argument('--window', default='1920x1080')
     ap.add_argument('--cap', type=int, default=2001)
     ap.add_argument('--skip-layout', action='store_true')
+    ap.add_argument('--viewports', nargs='+', default=VIEWPORTS)
     ap.add_argument('--browser')
     a = ap.parse_args()
 
@@ -238,12 +283,13 @@ def main():
     with tempfile.TemporaryDirectory(prefix='mrd-validate-') as tmp:
         inter, err = interactive_check(site, browser, a.cap, tmp)
         lay = {'status': '略過'} if a.skip_layout else layout_check(site, browser, a.window, tmp)
+        sts = {'status': '略過'} if a.skip_layout else states_check(site, browser, a.viewports, tmp)
         hand = handout_check(site, browser, tmp)
 
     inter_probs, formula_probs = split_problems(inter) if inter else ([], [])
     fatal = inter.get('fatal') if inter else None
     data = {'site': str(site), 'time': datetime.datetime.now().isoformat(timespec='seconds'), 'browser': str(browser),
-            'format': fmt, 'interactive': inter, 'interactiveError': err or fatal, 'layout': lay,
+            'format': fmt, 'interactive': inter, 'interactiveError': err or fatal, 'layout': lay, 'states': sts,
             'interProblems': inter_probs, 'formulaProblems': formula_probs, 'handout': hand}
     sampled = [f"第{p['page']}頁 {s['slider']}" for p in (inter or {}).get('pages', []) for s in p.get('sliders', []) if s['sampled']]
     data['summary'] = {
@@ -251,6 +297,7 @@ def main():
         '互動／繪圖（瀏覽器）': ('未完成：' + (err or fatal)) if (err or fatal) else ('通過' if not inter_probs else f'失敗（{len(inter_probs)} 項）') + (f'；⚠ 以下滑桿只抽樣、未測全部合法值：{"、".join(sampled)}' if sampled else ''),
         '公式（MathJax）': '未完成' if (err or fatal) else ('通過（只代表排版成功）' if not formula_probs else f'失敗（{len(formula_probs)} 項）'),
         '版面（?check）': lay.get('status') + (f"（{lay['viewport'][0]}×{lay['viewport'][1]}）" if lay.get('viewport') else ''),
+        '全狀態版面（多視窗＋所有互動）': sts['status'] + (f"（{sts['states']} 個狀態，{sts['issues']} 個問題，涉及第 {sts['failPages']} 頁；放不下就拆頁，不可縮字）" if sts['status'] == '失敗' else f"（{sts['states']} 個狀態）" if sts['status'] == '通過' else f"：{sts.get('reason', '')}"),
         '紙本（handout.html）': hand['status'] + (f"：{'；'.join(hand.get('problems', []))}" if hand.get('problems') else f"（任務頁 {hand.get('taskPages', 0)}、出口題 {hand.get('exits', 0)}；列印效果需人工預覽）" if hand['status'] == '通過' else f"：{hand.get('reason', '')}"),
         '數學內容': '需人工核對（程式不判定）',
     }
@@ -265,7 +312,7 @@ def main():
     print(f'   報告：{md}')
     if err or fatal:
         return 3
-    failed = fmt['status'] == '失敗' or inter_probs or formula_probs or lay.get('status') in ('失敗', '未完成') or hand['status'] in ('失敗', '未完成')
+    failed = fmt['status'] == '失敗' or inter_probs or formula_probs or lay.get('status') in ('失敗', '未完成') or sts['status'] in ('失敗', '未完成') or hand['status'] in ('失敗', '未完成')
     return 1 if failed else 0
 
 
